@@ -1371,10 +1371,10 @@
       }
     }
 
-    function buildExcelHtml() {
+    function buildExportRows() {
       const r = calculate();
       const totalLeadTime = getTotalLeadTime();
-      const rows = [
+      return [
         ["ARTICULO", el.product.value],
         ["CLIENTE", el.client.value],
         ["运输方式", getShippingModeLabel()],
@@ -1421,6 +1421,10 @@
         ["实际毛利", `${plain(r.actualMargin, 2)}%`],
         ["利润", (r.roundedQuote - r.finalCost) * r.quantity]
       ];
+    }
+
+    function buildExcelHtml() {
+      const rows = buildExportRows();
 
       const bodyRows = rows.map((row) => {
         if (row[0] === "") return '<tr><td colspan="4" class="blank"></td></tr>';
@@ -1454,21 +1458,188 @@
         </html>`;
     }
 
+    function xmlText(value) {
+      return String(value ?? "").replace(/[<>&'"]/g, (char) => ({
+        "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;"
+      }[char]));
+    }
+
+    function columnName(index) {
+      let name = "";
+      while (index > 0) {
+        const modulo = (index - 1) % 26;
+        name = String.fromCharCode(65 + modulo) + name;
+        index = Math.floor((index - modulo) / 26);
+      }
+      return name;
+    }
+
+    function xlsxCell(rowIndex, colIndex, value) {
+      const ref = `${columnName(colIndex)}${rowIndex}`;
+      if (typeof value === "number" && Number.isFinite(value)) {
+        return `<c r="${ref}"><v>${value}</v></c>`;
+      }
+      return `<c r="${ref}" t="inlineStr"><is><t>${xmlText(value)}</t></is></c>`;
+    }
+
+    function buildSheetXml(rows) {
+      const allRows = [["ESCANDALLO IMPORTACION"], ...rows];
+      const sheetRows = allRows.map((row, rowIndex) => {
+        const cells = row.map((value, colIndex) => xlsxCell(rowIndex + 1, colIndex + 1, value)).join("");
+        return `<row r="${rowIndex + 1}">${cells}</row>`;
+      }).join("");
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <cols><col min="1" max="4" width="24" customWidth="1"/></cols>
+  <sheetData>${sheetRows}</sheetData>
+</worksheet>`;
+    }
+
+    function crc32(bytes) {
+      if (!window.crcTable) {
+        window.crcTable = Array.from({ length: 256 }, (_, index) => {
+          let value = index;
+          for (let bit = 0; bit < 8; bit++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+          return value >>> 0;
+        });
+      }
+      let crc = 0xffffffff;
+      for (const byte of bytes) crc = window.crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function push16(target, value) {
+      target.push(value & 0xff, (value >>> 8) & 0xff);
+    }
+
+    function push32(target, value) {
+      target.push(value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff);
+    }
+
+    function dosDateTime() {
+      const now = new Date();
+      return {
+        time: (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2),
+        date: ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()
+      };
+    }
+
+    function makeZip(files) {
+      const encoder = new TextEncoder();
+      const chunks = [];
+      const central = [];
+      let offset = 0;
+      const { time, date } = dosDateTime();
+
+      files.forEach((file) => {
+        const nameBytes = encoder.encode(file.name);
+        const dataBytes = encoder.encode(file.content);
+        const crc = crc32(dataBytes);
+        const local = [];
+        push32(local, 0x04034b50);
+        push16(local, 20);
+        push16(local, 0);
+        push16(local, 0);
+        push16(local, time);
+        push16(local, date);
+        push32(local, crc);
+        push32(local, dataBytes.length);
+        push32(local, dataBytes.length);
+        push16(local, nameBytes.length);
+        push16(local, 0);
+        chunks.push(new Uint8Array(local), nameBytes, dataBytes);
+
+        const entry = [];
+        push32(entry, 0x02014b50);
+        push16(entry, 20);
+        push16(entry, 20);
+        push16(entry, 0);
+        push16(entry, 0);
+        push16(entry, time);
+        push16(entry, date);
+        push32(entry, crc);
+        push32(entry, dataBytes.length);
+        push32(entry, dataBytes.length);
+        push16(entry, nameBytes.length);
+        push16(entry, 0);
+        push16(entry, 0);
+        push16(entry, 0);
+        push16(entry, 0);
+        push32(entry, 0);
+        push32(entry, offset);
+        central.push(new Uint8Array(entry), nameBytes);
+        offset += local.length + nameBytes.length + dataBytes.length;
+      });
+
+      const centralSize = central.reduce((sum, item) => sum + item.length, 0);
+      const centralOffset = offset;
+      const end = [];
+      push32(end, 0x06054b50);
+      push16(end, 0);
+      push16(end, 0);
+      push16(end, files.length);
+      push16(end, files.length);
+      push32(end, centralSize);
+      push32(end, centralOffset);
+      push16(end, 0);
+
+      return new Blob([...chunks, ...central, new Uint8Array(end)], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+    }
+
+    function buildXlsxBlob() {
+      const rows = buildExportRows();
+      const files = [
+        {
+          name: "[Content_Types].xml",
+          content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`
+        },
+        {
+          name: "_rels/.rels",
+          content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`
+        },
+        {
+          name: "xl/workbook.xml",
+          content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets><sheet name="Quote" sheetId="1" r:id="rId1"/></sheets>
+</workbook>`
+        },
+        {
+          name: "xl/_rels/workbook.xml.rels",
+          content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`
+        },
+        { name: "xl/worksheets/sheet1.xml", content: buildSheetXml(rows) }
+      ];
+      return makeZip(files);
+    }
+
     async function exportExcel() {
       render();
-      const html = buildExcelHtml();
-      const content = "\ufeff" + html;
-      const blob = new Blob([content], { type: "application/vnd.ms-excel;charset=utf-8" });
+      const blob = buildXlsxBlob();
       const baseName = `${safeFileName(el.client.value)}-${safeFileName(el.product.value)}-quote`;
-      const name = `${baseName}.xls`;
+      const name = `${baseName}.xlsx`;
 
       if (typeof window.showSaveFilePicker === "function") {
         try {
           const handle = await window.showSaveFilePicker({
             suggestedName: name,
             types: [{
-              description: "Excel file",
-              accept: { "application/vnd.ms-excel": [".xls"] }
+              description: "Excel workbook",
+              accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] }
             }]
           });
           const writable = await handle.createWritable();
@@ -1483,6 +1654,16 @@
       if (typeof navigator.msSaveOrOpenBlob === "function") {
         navigator.msSaveOrOpenBlob(blob, name);
         return;
+      }
+
+      const file = typeof File === "function" ? new File([blob], name, { type: blob.type }) : null;
+      if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        try {
+          await navigator.share({ files: [file], title: name });
+          return;
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+        }
       }
 
       if (window.currentExcelUrl) URL.revokeObjectURL(window.currentExcelUrl);
