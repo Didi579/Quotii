@@ -1,0 +1,19 @@
+{
+  "name": "Quotii - Import Quote Calculator",
+  "short_name": "Quotii",
+  "description": "Import quote calculator for product costing, logistics, pallets, duties, and margin pricing.",
+  "start_url": "./quote-calculator.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f7f4",
+  "theme_color": "#0f2f5f",
+  "icons": [
+    {
+      "src": "./icons/quotii.png",
+      "sizes": "1280x1280",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

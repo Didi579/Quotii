@@ -1,0 +1,1684 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f2f5f">
+  <meta name="application-name" content="Quotii">
+  <meta name="apple-mobile-web-app-title" content="Quotii">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./icons/quotii.png">
+  <link rel="apple-touch-icon" href="./icons/quotii.png">
+  <title>Quotii</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --ink: #1f2a2e;
+      --muted: #607077;
+      --line: #dbe1dd;
+      --accent: #176f6b;
+      --accent-2: #8a4b2f;
+      --soft: #eaf3f1;
+      --warn: #9f5a13;
+      --good: #16725e;
+      --shadow: 0 14px 40px rgba(31, 42, 46, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      line-height: 1.45;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(620px, 1.25fr) minmax(360px, 0.75fr);
+      gap: 0;
+    }
+
+    main {
+      padding: 18px 20px;
+      overflow: auto;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px;
+      background: #eef2ef;
+      border-left: 1px solid var(--line);
+      overflow: auto;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 6px;
+      min-height: 32px;
+      padding: 0 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: white;
+    }
+
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      background: #f7fbfa;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    button:focus,
+    input:focus,
+    select:focus {
+      outline: 3px solid rgba(23, 111, 107, 0.18);
+      outline-offset: 1px;
+    }
+
+    section {
+      margin-bottom: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #34444a;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .field label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .grid > .field:not(.compact-group),
+    .grid > .switch-row {
+      grid-column: 1 / -1;
+    }
+
+    .wide-field {
+      grid-column: 1 / -1;
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .span-3 {
+      grid-column: span 3;
+    }
+
+    .compact-group {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px;
+      background: #fbfcfa;
+    }
+
+    .inline-fields {
+      display: grid;
+      grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .inline-fields .field {
+      min-width: 120px;
+    }
+
+    .stack-fields {
+      display: grid;
+      gap: 6px;
+    }
+
+    .style-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 76px;
+      gap: 6px;
+      align-items: end;
+    }
+
+    .style-row input {
+      min-width: 0;
+    }
+
+    label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      padding: 5px 8px;
+      color: var(--ink);
+      font: inherit;
+      white-space: nowrap;
+    }
+
+    select {
+      text-overflow: ellipsis;
+    }
+
+    input:disabled,
+    select:disabled {
+      background: #eef1ef;
+      color: #88949a;
+      cursor: not-allowed;
+    }
+
+    input[type="number"] {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="date"] {
+      min-width: 150px;
+      color-scheme: light;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      display: block;
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    .summary {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .quote-number {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 10px;
+    }
+
+    .quote-number .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .quote-number .value {
+      font-size: 34px;
+      line-height: 1;
+      color: var(--accent);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fbfcfa;
+      min-height: 58px;
+    }
+
+    .kpi span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .kpi strong {
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th,
+    td {
+      padding: 7px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      font-size: 12px;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f8faf8;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .warning {
+      display: none;
+      margin-top: 8px;
+      padding: 7px 8px;
+      border: 1px solid #e6c89d;
+      background: #fff8eb;
+      color: var(--warn);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .warning.show { display: block; }
+
+    .copy-box {
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fbfcfa;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.35;
+      color: #28353a;
+    }
+
+    .mini-table {
+      margin-top: 8px;
+    }
+
+    .mini-table th,
+    .mini-table td {
+      padding: 6px 7px;
+      font-size: 12px;
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .switch-row input {
+      width: 16px;
+      min-height: 16px;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+    }
+
+    @media (min-width: 1320px) {
+      .grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      main,
+      aside {
+        padding: 18px;
+      }
+
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quote-number {
+        grid-template-columns: 1fr;
+      }
+
+      .quote-number .value {
+        font-size: 38px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main>
+      <header>
+        <div>
+          <h1>Quotii</h1>
+          <div class="subtitle">按进口成本表逻辑计算最终成本、托盘、配送档位和目标毛利报价</div>
+        </div>
+        <div class="toolbar">
+          <select id="language">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+          <button type="button" id="resetBtn">重置示例</button>
+          <button type="button" id="exportBtn">导出Excel</button>
+          <button type="button" class="primary" id="copyBtn">复制报价</button>
+        </div>
+      </header>
+
+      <section>
+        <h2>订单</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="client">客户</label>
+            <input id="client" value="">
+          </div>
+          <div class="field">
+            <label for="product">产品</label>
+            <input id="product" value="">
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>运输与交期</h2>
+        <div class="grid">
+          <div class="field compact-group">
+            <div class="stack-fields">
+              <div class="inline-fields" style="--cols: 2">
+                <div class="field">
+                  <label for="shippingMode">运输方式</label>
+                  <select id="shippingMode">
+                    <option value="sea">海运</option>
+                    <option value="air">空运</option>
+                    <option value="courier">快递</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="shippingPort">出货港</label>
+                  <select id="shippingPort">
+                    <option value="宁波">宁波</option>
+                    <option value="上海">上海</option>
+                    <option value="深圳">深圳</option>
+                    <option value="广州">广州</option>
+                    <option value="青岛">青岛</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="transitMode">运输周期</label>
+                <select id="transitMode">
+                  <option value="auto">自动按运输方式</option>
+                  <option value="custom">手动输入</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="field compact-group wide-field">
+            <div class="inline-fields" style="--cols: 4">
+              <div class="field">
+                <label for="sampleLeadTime">样品周期 天</label>
+                <input id="sampleLeadTime" type="number" value="0" min="0" step="1">
+              </div>
+              <div class="field">
+                <label for="productionLeadTime">生产周期 天</label>
+                <input id="productionLeadTime" type="number" value="0" min="0" step="1">
+              </div>
+              <div class="field">
+                <label for="transitTime">运输周期 天</label>
+                <input id="transitTime" type="number" value="65" min="0" step="1">
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="totalLeadTime">总交期 天</label>
+            <input id="totalLeadTime" type="number" value="65" readonly>
+          </div>
+          <div class="field">
+            <label for="startDate">开始日期</label>
+            <input id="startDate" type="date">
+          </div>
+          <div class="field">
+            <label for="deliveryDate">交货日期</label>
+            <input id="deliveryDate" type="date" readonly>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>成本</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="quantity">数量</label>
+            <input id="quantity" type="number" value="0" min="0" step="1">
+          </div>
+          <div class="field compact-group">
+            <div class="stack-fields">
+              <div class="field">
+                <label for="unitCostCurrency">单价成本币种</label>
+                <select id="unitCostCurrency">
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="exchangeRate">汇率 USD 到 EUR</label>
+                <input id="exchangeRate" type="number" value="0.95" min="0" step="0.0001">
+              </div>
+            </div>
+          </div>
+          <div class="field compact-group wide-field">
+            <div class="inline-fields" style="--cols: 2">
+              <div class="field">
+                <label for="unitCost">单价成本</label>
+                <input id="unitCost" type="number" value="0" min="0" step="0.0001">
+              </div>
+              <div class="field">
+                <label for="unitCostEurDisplay">EUR 换算价格</label>
+                <input id="unitCostEurDisplay" type="number" value="2.47" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="dutyRate">关税税率 %</label>
+            <input id="dutyRate" type="number" value="2.7" min="0" step="0.01">
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>包装</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="unitsPerCarton">每箱数量</label>
+            <input id="unitsPerCarton" type="number" value="80" min="1" step="1">
+          </div>
+          <div class="field">
+            <label for="cartonWeight">每箱毛重 kg</label>
+            <input id="cartonWeight" type="number" value="9.5" min="0" step="0.1">
+          </div>
+          <label class="switch-row">
+            <input id="roundCartons" type="checkbox">
+            <span id="roundCartonsLabel">总箱数向上取整</span>
+          </label>
+          <div class="field compact-group wide-field">
+            <div class="inline-fields" style="--cols: 3">
+              <div class="field">
+                <label for="cartonLength">外箱长 cm</label>
+                <input id="cartonLength" type="number" value="45" min="0" step="0.1">
+              </div>
+              <div class="field">
+                <label for="cartonWidth">外箱宽 cm</label>
+                <input id="cartonWidth" type="number" value="45" min="0" step="0.1">
+              </div>
+              <div class="field">
+                <label for="cartonHeight">外箱高 cm</label>
+                <input id="cartonHeight" type="number" value="40" min="0" step="0.1">
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="cartonsDisplay">总箱数</label>
+            <input id="cartonsDisplay" type="number" value="125" readonly>
+          </div>
+          <div class="field">
+            <label for="cbmDisplay">总体积 CBM</label>
+            <input id="cbmDisplay" type="number" value="10.125" readonly>
+          </div>
+          <div class="field compact-group wide-field">
+            <div class="inline-fields" style="--cols: 3">
+              <div class="field">
+                <label for="airFreightRmbKg">空运 RMB/kg</label>
+                <input id="airFreightRmbKg" type="number" value="0" min="0" step="0.01">
+              </div>
+              <div class="field">
+                <label for="chargeableWeightDisplay">计费重量 kg</label>
+                <input id="chargeableWeightDisplay" type="number" value="0" readonly>
+              </div>
+              <div class="field">
+                <label for="chargeableTypeDisplay">计费方式</label>
+                <input id="chargeableTypeDisplay" value="-" readonly>
+              </div>
+              <div class="field">
+                <label for="freightTotal">运费总额 EUR</label>
+                <input id="freightTotal" type="number" value="0" min="0" step="1">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>费用规则</h2>
+        <div class="grid">
+          <div class="field compact-group wide-field">
+            <div class="inline-fields" style="--cols: 2">
+              <div class="field">
+                <label for="sampleTotal">样品费 EUR</label>
+                <input id="sampleTotal" type="number" value="200" min="0" step="1">
+              </div>
+              <div class="field">
+                <label for="inspectionTotal">验货费 EUR</label>
+                <input id="inspectionTotal" type="number" value="250" min="0" step="1">
+              </div>
+            </div>
+          </div>
+          <div class="field compact-group wide-field">
+            <div class="inline-fields" style="--cols: 2">
+              <div class="field">
+                <label for="llegadaMode">到仓费</label>
+                <select id="llegadaMode">
+                  <option value="auto">自动按箱数档位</option>
+                  <option value="custom">手动输入</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="llegadaCustom">到仓费手动 EUR</label>
+                <input id="llegadaCustom" type="number" value="450" min="0" step="1">
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="palletUnitCost">托盘成本 EUR/托</label>
+            <input id="palletUnitCost" type="number" value="25" min="0" step="1">
+          </div>
+          <div class="field compact-group wide-field">
+            <div class="inline-fields" style="--cols: 2">
+              <div class="field">
+                <label for="entregaMode">西班牙派送</label>
+                <select id="entregaMode">
+                  <option value="auto">自动按托盘档位</option>
+                  <option value="custom">手动输入</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="entregaCustom">派送费手动 EUR</label>
+                <input id="entregaCustom" type="number" value="350" min="0" step="1">
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="palletsDisplay">总托盘数</label>
+            <input id="palletsDisplay" type="number" value="10" readonly>
+          </div>
+          <div class="field">
+            <label for="palletType">计入报价的托盘类型</label>
+            <select id="palletType">
+              <option value="EUR">EUR pallet 120 x 80</option>
+              <option value="US">US pallet 120 x 100</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="styleMode">分款打托</label>
+            <select id="styleMode">
+              <option value="no">不分款</option>
+              <option value="yes">分款</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="styleCount">款数</label>
+            <input id="styleCount" type="number" value="1" min="1" step="1" disabled>
+          </div>
+          <div class="field">
+            <label for="palletMaxHeight">限高 含托盘 cm</label>
+            <input id="palletMaxHeight" type="number" value="150" min="0" step="1">
+          </div>
+          <div class="field">
+            <label for="palletBaseHeight">托盘高度 cm</label>
+            <input id="palletBaseHeight" type="number" value="15" min="0" step="1">
+          </div>
+          <div class="wide-field">
+            <div id="styleQuantityFields" class="grid"></div>
+            <table class="mini-table" aria-label="托盘装箱计算">
+              <thead>
+                <tr>
+                  <th>托盘</th>
+                  <th>每层</th>
+                  <th>层数</th>
+                  <th>每托箱数</th>
+                  <th>混托托数</th>
+                  <th>每款托数</th>
+                  <th>实际托数</th>
+                </tr>
+              </thead>
+              <tbody id="palletPlanRows"></tbody>
+            </table>
+            <div class="note" id="palletPlannerNote">EUR pallet 按 120 x 80 cm，US pallet 按 120 x 100 cm；箱子不超出托盘边缘。</div>
+          </div>
+          <div class="field">
+            <label for="financingRate">融资费 %</label>
+            <input id="financingRate" type="number" value="2.5" min="0" step="0.1">
+          </div>
+          <div class="field">
+            <label for="rappelRate">返利 %</label>
+            <input id="rappelRate" type="number" value="0" min="0" step="0.1">
+          </div>
+          <div class="field">
+            <label for="targetMargin">目标毛利 %</label>
+            <input id="targetMargin" type="number" value="25" min="0" max="95" step="0.1">
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside>
+      <div class="summary">
+        <div class="quote-number">
+          <div>
+            <div class="label">建议报价 EUR / 件</div>
+            <div class="subtitle" id="quoteSubtitle">目标毛利 25%</div>
+          </div>
+          <div class="value" id="quotePrice">€0.00</div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <span>最终成本</span>
+            <strong id="finalCost">€0.00</strong>
+          </div>
+          <div class="kpi">
+            <span>毛利</span>
+            <strong id="actualMargin">0.0%</strong>
+          </div>
+          <div class="kpi">
+            <span>总箱数</span>
+            <strong id="cartons">0</strong>
+          </div>
+          <div class="kpi">
+            <span>托盘</span>
+            <strong id="pallets">0</strong>
+          </div>
+          <div class="kpi">
+            <span>总体积 CBM</span>
+            <strong id="cbm">0</strong>
+          </div>
+          <div class="kpi">
+            <span>PESO VOL</span>
+            <strong id="pesoVol">0</strong>
+          </div>
+          <div class="kpi">
+            <span>PESO BRUTO</span>
+            <strong id="pesoBruto">0</strong>
+          </div>
+          <div class="kpi">
+            <span>预计交货日期</span>
+            <strong id="deliveryDateKpi">-</strong>
+          </div>
+        </div>
+
+        <div class="warning" id="warning"></div>
+      </div>
+
+      <table class="cost-table" aria-label="成本明细">
+        <thead>
+          <tr>
+            <th>项目</th>
+            <th>总额</th>
+            <th>单件</th>
+          </tr>
+        </thead>
+        <tbody id="costRows"></tbody>
+      </table>
+
+      <textarea class="copy-box" id="copyText" readonly></textarea>
+      <div class="note">报价按当前输入即时更新。总箱数默认按数量 / 每箱数量向上取整。</div>
+    </aside>
+  </div>
+
+  <script>
+    const ids = [
+      "language", "client", "product", "shippingMode", "shippingPort", "sampleLeadTime", "productionLeadTime",
+      "transitMode", "transitTime", "totalLeadTime", "startDate", "deliveryDate",
+      "quantity", "unitCostCurrency", "unitCost", "unitCostEurDisplay", "exchangeRate",
+      "airFreightRmbKg", "chargeableWeightDisplay", "chargeableTypeDisplay", "freightTotal", "dutyRate", "targetMargin", "unitsPerCarton", "cartonWeight",
+      "roundCartons", "cartonLength", "cartonWidth", "cartonHeight", "cartonsDisplay", "cbmDisplay",
+      "llegadaMode", "llegadaCustom", "palletUnitCost", "sampleTotal", "inspectionTotal",
+      "entregaMode", "entregaCustom", "palletsDisplay", "financingRate", "rappelRate",
+      "palletType", "styleMode", "styleCount", "palletMaxHeight", "palletBaseHeight"
+    ];
+
+    const defaults = {
+      client: "",
+      language: "en",
+      product: "",
+      shippingMode: "sea",
+      shippingPort: "宁波",
+      sampleLeadTime: 0,
+      productionLeadTime: 0,
+      transitMode: "auto",
+      transitTime: 65,
+      totalLeadTime: 65,
+      startDate: "",
+      deliveryDate: "",
+      quantity: 0,
+      unitCostCurrency: "USD",
+      unitCost: 0,
+      unitCostEurDisplay: 0,
+      exchangeRate: 0,
+      airFreightRmbKg: 0,
+      chargeableWeightDisplay: 0,
+      chargeableTypeDisplay: "-",
+      freightTotal: 0,
+      dutyRate: 0,
+      targetMargin: 0,
+      unitsPerCarton: 0,
+      cartonWeight: 0,
+      roundCartons: true,
+      cartonLength: 0,
+      cartonWidth: 0,
+      cartonHeight: 0,
+      cartonsDisplay: 0,
+      cbmDisplay: 0,
+      llegadaMode: "auto",
+      llegadaCustom: 0,
+      palletUnitCost: 0,
+      sampleTotal: 0,
+      inspectionTotal: 0,
+      entregaMode: "auto",
+      entregaCustom: 0,
+      palletsDisplay: 0,
+      palletType: "EUR",
+      styleMode: "no",
+      styleCount: 1,
+      palletMaxHeight: 150,
+      palletBaseHeight: 15,
+      financingRate: 2.5,
+      rappelRate: 0
+    };
+
+    const el = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
+
+    const I18N = {
+      zh: {
+        title: "Quotii",
+        subtitle: "按进口成本表逻辑计算最终成本、托盘、配送档位和目标毛利报价",
+        reset: "重置示例", exportExcel: "导出Excel", copy: "复制报价", copied: "已复制",
+        order: "订单", client: "客户", product: "产品",
+        shippingLead: "运输与交期", shippingMode: "运输方式", shippingPort: "出货港", sea: "海运", air: "空运", courier: "快递",
+        sampleLead: "样品周期 天", productionLead: "生产周期 天", transitMode: "运输周期",
+        autoTransport: "自动按运输方式", manualInput: "手动输入", transitTime: "运输周期 天",
+        totalLead: "总交期 天", startDate: "开始日期", deliveryDate: "交货日期",
+        cost: "成本", quantity: "数量", costCurrency: "单价成本币种", unitCost: "单价成本",
+        eurCost: "EUR 换算价格", exchange: "汇率 USD 到 EUR", airFreightRmbKg: "运费 RMB/kg", chargeableWeight: "计费重量 kg", chargeableType: "计费方式", heavyCargo: "重货", volumeCargo: "抛货", freight: "运费总额 EUR", duty: "关税税率 %",
+        packing: "包装", unitsCarton: "每箱数量", cartonWeight: "每箱毛重 kg", roundCartons: "总箱数向上取整",
+        cartonL: "外箱长 cm", cartonW: "外箱宽 cm", cartonH: "外箱高 cm", cartonsTotal: "总箱数", cbmDisplay: "总体积 CBM",
+        rules: "费用规则", sampleFee: "样品费 EUR", inspectionFee: "验货费 EUR", llegada: "到仓费",
+        autoCartonTier: "自动按箱数档位", llegadaManual: "到仓费手动 EUR", palletCost: "托盘成本 EUR/托",
+        entrega: "西班牙派送", autoPalletTier: "自动按托盘档位", entregaManual: "派送费手动 EUR",
+        palletsTotal: "总托盘数", palletType: "计入报价的托盘类型", styleMode: "分款打托", noStyleSplit: "不分款", yesStyleSplit: "分款", styleCount: "款数", styleQty: "款式数量", financing: "融资费 %", rappel: "返利 %", targetMargin: "目标毛利 %",
+        quoteLabel: "建议报价 EUR / 件", finalCost: "最终成本", margin: "毛利", pallet: "托盘",
+        totalCbm: "总体积 CBM", eta: "预计交货日期", palletLoading: "托盘装箱",
+        maxHeight: "限高 含托盘 cm", palletHeight: "托盘高度 cm", perLayer: "每层", layers: "层数",
+        boxesPerPallet: "每托箱数", mixedPallets: "混托托数", palletsByStyle: "每款托数", actualPallets: "分款实际托数", item: "项目", total: "总额", unit: "单件",
+        actual: "实际", quote: "建议报价", actualMargin: "实际毛利率", notApplicable: "不适用",
+        cartonSpec: "箱规", palletNote: "EUR pallet 按 120 x 80 cm，US pallet 按 120 x 100 cm；箱子不超出托盘边缘。"
+      },
+      en: {
+        title: "Quotii",
+        subtitle: "Calculate final cost, pallets, delivery tiers, and target-margin price",
+        reset: "Reset Example", exportExcel: "Export Excel", copy: "Copy Quote", copied: "Copied",
+        order: "Order", client: "Client", product: "Product",
+        shippingLead: "Shipping & Lead Time", shippingMode: "Shipping Mode", shippingPort: "Port of Loading", sea: "Sea", air: "Air", courier: "Courier",
+        sampleLead: "Sample Lead Time Days", productionLead: "Production Lead Time Days", transitMode: "Transit Time",
+        autoTransport: "Auto by Shipping Mode", manualInput: "Manual Input", transitTime: "Transit Time Days",
+        totalLead: "Total Lead Time Days", startDate: "Start Date", deliveryDate: "Delivery Date",
+        cost: "Cost", quantity: "Quantity", costCurrency: "Unit Cost Currency", unitCost: "Unit Cost",
+        eurCost: "EUR Converted Cost", exchange: "USD to EUR Rate", airFreightRmbKg: "Freight RMB/kg", chargeableWeight: "Chargeable kg", chargeableType: "Chargeable Type", heavyCargo: "Gross Weight", volumeCargo: "Volume Weight", freight: "Freight Total EUR", duty: "Duty Rate %",
+        packing: "Packing", unitsCarton: "Units per Carton", cartonWeight: "Gross Weight kg/ctn", roundCartons: "Round Cartons Up",
+        cartonL: "Carton Length cm", cartonW: "Carton Width cm", cartonH: "Carton Height cm", cartonsTotal: "Total Cartons", cbmDisplay: "Total CBM",
+        rules: "Cost Rules", sampleFee: "Sample EUR", inspectionFee: "Inspection EUR", llegada: "Arrival Cost",
+        autoCartonTier: "Auto by Carton Tier", llegadaManual: "Arrival Manual EUR", palletCost: "Pallet Cost EUR/pallet",
+        entrega: "Spain Delivery", autoPalletTier: "Auto by Pallet Tier", entregaManual: "Delivery Manual EUR",
+        palletsTotal: "Total Pallets", palletType: "Pallet Type for Quote", styleMode: "Style Split", noStyleSplit: "No Split", yesStyleSplit: "Split by Style", styleCount: "Style Count", styleQty: "Style Quantity", financing: "Financing %", rappel: "Rebate %", targetMargin: "Target Margin %",
+        quoteLabel: "Suggested Price EUR / pc", finalCost: "Final Cost", margin: "Margin", pallet: "Pallet",
+        totalCbm: "Total CBM", eta: "Estimated Delivery Date", palletLoading: "Pallet Loading",
+        maxHeight: "Max Height incl. Pallet cm", palletHeight: "Pallet Height cm", perLayer: "Per Layer", layers: "Layers",
+        boxesPerPallet: "Cartons/Pallet", mixedPallets: "Mixed Pallets", palletsByStyle: "Pallets/Style", actualPallets: "Style-separated Pallets", item: "Item", total: "Total", unit: "Unit",
+        actual: "Actual", quote: "Suggested Price", actualMargin: "Actual Margin", notApplicable: "N/A",
+        cartonSpec: "Carton size", palletNote: "EUR pallet is 120 x 80 cm, US pallet is 120 x 100 cm; cartons do not exceed pallet edges."
+      },
+      es: {
+        title: "Quotii",
+        subtitle: "Calcula coste final, pallets, tramos de entrega y precio con margen objetivo",
+        reset: "Restablecer", exportExcel: "Exportar Excel", copy: "Copiar Oferta", copied: "Copiado",
+        order: "Pedido", client: "Cliente", product: "Producto",
+        shippingLead: "Transporte y Plazo", shippingMode: "Transporte", shippingPort: "Puerto de Carga", sea: "Marítimo", air: "Aéreo", courier: "Courier",
+        sampleLead: "Plazo de Muestra Días", productionLead: "Plazo de Producción Días", transitMode: "Tránsito",
+        autoTransport: "Auto por Transporte", manualInput: "Manual", transitTime: "Tránsito Días",
+        totalLead: "Plazo Total Días", startDate: "Fecha Inicio", deliveryDate: "Fecha Entrega",
+        cost: "Coste", quantity: "Cantidad", costCurrency: "Moneda Coste Unitario", unitCost: "Coste Unitario",
+        eurCost: "Coste Convertido EUR", exchange: "Cambio USD a EUR", airFreightRmbKg: "Flete RMB/kg", chargeableWeight: "Peso Facturable kg", chargeableType: "Tipo Facturable", heavyCargo: "Peso Bruto", volumeCargo: "Peso Volumétrico", freight: "Flete Total EUR", duty: "Arancel %",
+        packing: "Embalaje", unitsCarton: "Unidades por Caja", cartonWeight: "Peso Bruto kg/caja", roundCartons: "Redondear Cajas",
+        cartonL: "Largo Caja cm", cartonW: "Ancho Caja cm", cartonH: "Alto Caja cm", cartonsTotal: "Total Cajas", cbmDisplay: "CBM Total",
+        rules: "Reglas de Coste", sampleFee: "Muestra EUR", inspectionFee: "Inspección EUR", llegada: "Llegada",
+        autoCartonTier: "Auto por Tramo de Cajas", llegadaManual: "Llegada Manual EUR", palletCost: "Coste Pallet EUR/pallet",
+        entrega: "Entrega España", autoPalletTier: "Auto por Tramo de Pallets", entregaManual: "Entrega Manual EUR",
+        palletsTotal: "Total Pallets", palletType: "Tipo de Pallet para Cotización", styleMode: "Separar por Modelo", noStyleSplit: "Sin Separar", yesStyleSplit: "Separar", styleCount: "Número de Modelos", styleQty: "Cantidad Modelo", financing: "Financiación %", rappel: "Rappel %", targetMargin: "Margen Objetivo %",
+        quoteLabel: "Precio Sugerido EUR / ud", finalCost: "Coste Final", margin: "Margen", pallet: "Pallet",
+        totalCbm: "CBM Total", eta: "Fecha Entrega Estimada", palletLoading: "Carga de Pallets",
+        maxHeight: "Altura Máx incl. Pallet cm", palletHeight: "Altura Pallet cm", perLayer: "Por Capa", layers: "Capas",
+        boxesPerPallet: "Cajas/Pallet", mixedPallets: "Pallets Mezclados", palletsByStyle: "Pallets/Modelo", actualPallets: "Pallets por Modelo", item: "Concepto", total: "Total", unit: "Unidad",
+        actual: "Real", quote: "Precio Sugerido", actualMargin: "Margen Real", notApplicable: "N/A",
+        cartonSpec: "Medida caja", palletNote: "Pallet EUR 120 x 80 cm, pallet US 120 x 100 cm; las cajas no sobresalen del pallet."
+      }
+    };
+
+    function tr(key) {
+      return I18N[el.language.value]?.[key] || I18N.zh[key] || key;
+    }
+
+    function getSelectedText(selectEl) {
+      return selectEl.options[selectEl.selectedIndex]?.textContent || selectEl.value;
+    }
+
+    function getShippingModeLabel() {
+      return tr(el.shippingMode.value);
+    }
+
+    function currentLocale() {
+      if (el.language.value === "en") return "en-US";
+      if (el.language.value === "es") return "es-ES";
+      return "zh-CN";
+    }
+
+    function parseDateInput(dateText) {
+      if (!dateText) return null;
+      const value = String(dateText).trim();
+      let match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      match = value.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+      if (!match) return null;
+      const first = Number(match[1]);
+      const second = Number(match[2]);
+      const year = Number(match[3]);
+      const month = el.language.value === "en" ? first : second;
+      const day = el.language.value === "en" ? second : first;
+      const date = new Date(year, month - 1, day);
+      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+      return date;
+    }
+
+    function formatDate(dateText) {
+      if (!dateText) return "-";
+      const date = parseDateInput(dateText);
+      if (!date || Number.isNaN(date.getTime())) return dateText;
+      return new Intl.DateTimeFormat(currentLocale(), {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(date);
+    }
+
+    function toIsoDate(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function todayText() {
+      return toIsoDate(new Date());
+    }
+    function setText(selector, key) {
+      const node = document.querySelector(selector);
+      if (node) node.textContent = tr(key);
+    }
+
+    function applyLanguage() {
+      document.documentElement.lang = currentLocale();
+      document.title = "Quotii";
+      el.startDate.lang = currentLocale();
+      el.deliveryDate.lang = currentLocale();
+      const map = {
+        "h1": "title", ".subtitle": "subtitle", "#resetBtn": "reset", "#exportBtn": "exportExcel", "#copyBtn": "copy",
+        "main section:nth-of-type(1) h2": "order", "label[for='client']": "client", "label[for='product']": "product",
+        "main section:nth-of-type(2) h2": "shippingLead", "label[for='shippingMode']": "shippingMode",
+        "label[for='shippingPort']": "shippingPort",
+        "#shippingMode option[value='sea']": "sea", "#shippingMode option[value='air']": "air", "#shippingMode option[value='courier']": "courier",
+        "label[for='sampleLeadTime']": "sampleLead", "label[for='productionLeadTime']": "productionLead",
+        "label[for='transitMode']": "transitMode", "#transitMode option[value='auto']": "autoTransport",
+        "#transitMode option[value='custom']": "manualInput", "label[for='transitTime']": "transitTime",
+        "label[for='totalLeadTime']": "totalLead", "label[for='startDate']": "startDate", "label[for='deliveryDate']": "deliveryDate",
+        "main section:nth-of-type(3) h2": "cost", "label[for='quantity']": "quantity", "label[for='unitCostCurrency']": "costCurrency",
+        "label[for='unitCost']": "unitCost", "label[for='unitCostEurDisplay']": "eurCost", "label[for='exchangeRate']": "exchange",
+        "label[for='freightTotal']": "freight", "label[for='dutyRate']": "duty",
+        "main section:nth-of-type(4) h2": "packing", "label[for='unitsPerCarton']": "unitsCarton",
+        "label[for='cartonWeight']": "cartonWeight", "#roundCartonsLabel": "roundCartons", "label[for='cartonLength']": "cartonL",
+        "label[for='cartonWidth']": "cartonW", "label[for='cartonHeight']": "cartonH", "label[for='cartonsDisplay']": "cartonsTotal",
+        "label[for='cbmDisplay']": "cbmDisplay",
+        "label[for='airFreightRmbKg']": "airFreightRmbKg", "label[for='chargeableWeightDisplay']": "chargeableWeight", "label[for='chargeableTypeDisplay']": "chargeableType",
+        "main section:nth-of-type(5) h2": "rules", "label[for='sampleTotal']": "sampleFee", "label[for='inspectionTotal']": "inspectionFee",
+        "label[for='llegadaMode']": "llegada", "#llegadaMode option[value='auto']": "autoCartonTier",
+        "#llegadaMode option[value='custom']": "manualInput", "label[for='llegadaCustom']": "llegadaManual",
+        "label[for='palletUnitCost']": "palletCost", "label[for='entregaMode']": "entrega",
+        "#entregaMode option[value='auto']": "autoPalletTier", "#entregaMode option[value='custom']": "manualInput",
+        "label[for='entregaCustom']": "entregaManual", "label[for='palletsDisplay']": "palletsTotal",
+        "label[for='palletType']": "palletType",
+        "label[for='styleMode']": "styleMode", "#styleMode option[value='no']": "noStyleSplit", "#styleMode option[value='yes']": "yesStyleSplit",
+        "label[for='styleCount']": "styleCount",
+        "label[for='financingRate']": "financing", "label[for='rappelRate']": "rappel", "label[for='targetMargin']": "targetMargin",
+        ".quote-number .label": "quoteLabel", ".kpi:nth-child(1) span": "finalCost", ".kpi:nth-child(2) span": "margin",
+        ".kpi:nth-child(3) span": "cartonsTotal", ".kpi:nth-child(4) span": "pallet", ".kpi:nth-child(5) span": "totalCbm",
+        ".kpi:nth-child(8) span": "eta",
+        "label[for='palletMaxHeight']": "maxHeight", "label[for='palletBaseHeight']": "palletHeight",
+        ".mini-table th:nth-child(1)": "pallet", ".mini-table th:nth-child(2)": "perLayer", ".mini-table th:nth-child(3)": "layers",
+        ".mini-table th:nth-child(4)": "boxesPerPallet", ".mini-table th:nth-child(5)": "mixedPallets", ".mini-table th:nth-child(6)": "palletsByStyle", ".mini-table th:nth-child(7)": "actualPallets",
+        ".cost-table th:nth-child(1)": "item", ".cost-table th:nth-child(2)": "total", ".cost-table th:nth-child(3)": "unit"
+      };
+      Object.entries(map).forEach(([selector, key]) => setText(selector, key));
+      const portLabels = {
+        zh: ["宁波", "上海", "深圳", "广州", "青岛"],
+        en: ["Ningbo", "Shanghai", "Shenzhen", "Guangzhou", "Qingdao"],
+        es: ["Ningbo", "Shanghai", "Shenzhen", "Guangzhou", "Qingdao"]
+      };
+      document.querySelectorAll("#shippingPort option").forEach((option, index) => {
+        option.textContent = (portLabels[el.language.value] || portLabels.zh)[index] || option.value;
+      });
+      document.querySelector("#shippingMode option[value='sea']").textContent = tr("sea");
+      document.querySelector("#shippingMode option[value='air']").textContent = tr("air");
+      document.querySelector("#transitMode option[value='auto']").textContent = tr("autoTransport");
+      document.querySelector("#transitMode option[value='custom']").textContent = tr("manualInput");
+      document.querySelector("#llegadaMode option[value='auto']").textContent = tr("autoCartonTier");
+      document.querySelector("#llegadaMode option[value='custom']").textContent = tr("manualInput");
+      document.querySelector("#entregaMode option[value='auto']").textContent = tr("autoPalletTier");
+      document.querySelector("#entregaMode option[value='custom']").textContent = tr("manualInput");
+      document.querySelector("#styleMode option[value='no']").textContent = tr("noStyleSplit");
+      document.querySelector("#styleMode option[value='yes']").textContent = tr("yesStyleSplit");
+    }
+
+    function num(id) {
+      const value = Number(el[id].value);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function money(value, decimals = 2) {
+      return "€" + value.toLocaleString("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function plain(value, decimals = 2) {
+      return value.toLocaleString("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function pct(value) {
+      return value.toLocaleString("en-US", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      }) + "%";
+    }
+
+    function excelText(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function safeFileName(value) {
+      return String(value || "quote")
+        .trim()
+        .replace(/[\\/:*?"<>|]+/g, "-")
+        .replace(/\s+/g, "-")
+        .slice(0, 80) || "quote";
+    }
+
+    function getTransitTime() {
+      if (el.transitMode.value === "custom") return num("transitTime");
+      return ["air", "courier"].includes(el.shippingMode.value) ? 15 : 65;
+    }
+
+    function getTotalLeadTime() {
+      return num("sampleLeadTime") + num("productionLeadTime") + getTransitTime();
+    }
+
+    function addDays(dateText, days) {
+      if (!dateText) return "";
+      const date = parseDateInput(dateText);
+      if (!date || Number.isNaN(date.getTime())) return "";
+      date.setDate(date.getDate() + Math.round(days));
+      return toIsoDate(date);
+    }
+
+    function getUnitCostEur() {
+      if (el.unitCostCurrency.value === "EUR") return num("unitCost");
+      return num("unitCost") * num("exchangeRate");
+    }
+
+    function getAirFreightTotal(cbm, totalKgs) {
+      const volumeFactor = el.shippingMode.value === "courier" ? 200 : 167;
+      const volumeWeight = cbm * volumeFactor;
+      const chargeableWeight = Math.max(totalKgs, volumeWeight);
+      const chargeableType = totalKgs >= volumeWeight ? "heavyCargo" : "volumeCargo";
+      return {
+        volumeWeight,
+        chargeableWeight,
+        chargeableType,
+        total: num("airFreightRmbKg") * chargeableWeight / 8
+      };
+    }
+
+    function getStyleQuantities(totalQuantity) {
+      if (el.styleMode.value !== "yes") return [totalQuantity];
+      const count = Math.max(Math.ceil(num("styleCount")), 1);
+      const fallback = totalQuantity / count;
+      return Array.from({ length: count }, (_, index) => {
+        const input = document.getElementById(`styleQty${index + 1}`);
+        const value = input ? Number(input.value) : fallback;
+        return Number.isFinite(value) && value > 0 ? value : 0;
+      });
+    }
+
+    function renderStyleQuantityFields(totalQuantity, force = false) {
+      const wrap = document.getElementById("styleQuantityFields");
+      if (!wrap) return;
+      if (el.styleMode.value !== "yes") {
+        wrap.innerHTML = "";
+        return;
+      }
+      const count = Math.max(Math.ceil(num("styleCount")), 1);
+      if (!force && wrap.querySelectorAll(".style-qty").length === count) return;
+      const current = Array.from({ length: count }, (_, index) => {
+        const existing = document.getElementById(`styleQty${index + 1}`);
+        return existing ? existing.value : String(Math.round(totalQuantity / count));
+      });
+      wrap.innerHTML = current.map((value, index) => `
+        <div class="style-row">
+          <div class="field">
+            <label for="styleQty${index + 1}">${tr("styleQty")} ${index + 1}</label>
+            <input id="styleQty${index + 1}" class="style-qty" type="number" value="${excelText(value)}" min="0" max="${excelText(totalQuantity)}" step="1">
+          </div>
+          <div class="field">
+            <label for="stylePallets${index + 1}">${tr("pallet")}</label>
+            <input id="stylePallets${index + 1}" class="style-pallets" type="number" value="0" readonly>
+          </div>
+        </div>
+      `).join("");
+      wrap.querySelectorAll(".style-qty").forEach((input) => input.addEventListener("input", () => {
+        enforceStyleQuantityLimit(input);
+        render();
+      }));
+    }
+
+    function enforceStyleQuantityLimit(changedInput = null) {
+      if (el.styleMode.value !== "yes") return;
+      const totalQuantity = Math.max(num("quantity"), 0);
+      const inputs = Array.from(document.querySelectorAll(".style-qty"));
+      let runningTotal = 0;
+      inputs.forEach((input) => {
+        let value = Number(input.value);
+        if (!Number.isFinite(value) || value < 0) value = 0;
+        if (input === changedInput) {
+          const maxAllowed = Math.max(totalQuantity - runningTotal, 0);
+          value = Math.min(value, maxAllowed);
+        }
+        input.value = value;
+        runningTotal += value;
+      });
+      if (!changedInput && runningTotal > totalQuantity && inputs.length) {
+        const last = inputs[inputs.length - 1];
+        const overflow = runningTotal - totalQuantity;
+        last.value = Math.max(Number(last.value) - overflow, 0);
+      }
+    }
+
+    function calculatePalletPlan(palletName, palletLength, palletWidth, cartons) {
+      const cartonLength = Math.max(num("cartonLength"), 0);
+      const cartonWidth = Math.max(num("cartonWidth"), 0);
+      const cartonHeight = Math.max(num("cartonHeight"), 0);
+      const maxHeight = Math.max(num("palletMaxHeight"), 0);
+      const baseHeight = Math.max(num("palletBaseHeight"), 0);
+      const usableHeight = Math.max(maxHeight - baseHeight, 0);
+
+      const fitA = cartonLength > 0 && cartonWidth > 0
+        ? Math.floor(palletLength / cartonLength) * Math.floor(palletWidth / cartonWidth)
+        : 0;
+      const fitB = cartonLength > 0 && cartonWidth > 0
+        ? Math.floor(palletLength / cartonWidth) * Math.floor(palletWidth / cartonLength)
+        : 0;
+      const perLayer = Math.max(fitA, fitB);
+      const layers = cartonHeight > 0 ? Math.floor(usableHeight / cartonHeight) : 0;
+      const boxesPerPallet = perLayer * layers;
+      const mixedPallets = boxesPerPallet > 0 ? Math.ceil(cartons / boxesPerPallet) : 0;
+      const unitsPerCarton = Math.max(num("unitsPerCarton"), 1);
+      const styleQuantities = getStyleQuantities(num("quantity"));
+      const palletsByStyle = boxesPerPallet > 0
+        ? styleQuantities.map((quantity) => {
+            const styleCartons = el.roundCartons.checked ? Math.ceil(quantity / unitsPerCarton) : quantity / unitsPerCarton;
+            return Math.ceil(styleCartons / boxesPerPallet);
+          })
+        : [];
+      const actualPallets = boxesPerPallet > 0
+        ? palletsByStyle.reduce((sum, value) => sum + value, 0)
+        : 0;
+
+      return { palletName, perLayer, layers, boxesPerPallet, mixedPallets, palletsByStyle, actualPallets };
+    }
+
+    function renderPalletPlanner(plans) {
+      const note = document.getElementById("palletPlannerNote");
+      if (note) {
+        note.textContent = `${tr("cartonSpec")} ${plain(num("cartonLength"), 1)} x ${plain(num("cartonWidth"), 1)} x ${plain(num("cartonHeight"), 1)} cm；${tr("palletNote")}`;
+      }
+      document.getElementById("palletPlanRows").innerHTML = plans.map((plan) => `
+        <tr>
+          <td>${plan.palletName}</td>
+          <td>${plain(plan.perLayer, 0)}</td>
+          <td>${plain(plan.layers, 0)}</td>
+          <td>${plain(plan.boxesPerPallet, 0)}</td>
+          <td>${plain(plan.mixedPallets, 0)}</td>
+          <td>${plan.palletsByStyle.length > 1 ? plan.palletsByStyle.join(" / ") : "-"}</td>
+          <td>${plain(plan.actualPallets, 0)}</td>
+        </tr>
+      `).join("");
+      const selectedPlan = el.palletType.value === "US" ? plans[1] : plans[0];
+      if (selectedPlan) {
+        selectedPlan.palletsByStyle.forEach((value, index) => {
+          const input = document.getElementById(`stylePallets${index + 1}`);
+          if (input) input.value = value;
+        });
+      }
+    }
+
+    function buildExcelHtml() {
+      const r = calculate();
+      const totalLeadTime = getTotalLeadTime();
+      const rows = [
+        ["ARTICULO", el.product.value],
+        ["CLIENTE", el.client.value],
+        ["运输方式", getShippingModeLabel()],
+        ["出货港", getSelectedText(el.shippingPort)],
+        ["开始日期", formatDate(el.startDate.value)],
+        ["预计交货日期", formatDate(el.deliveryDate.value)],
+        ["样品周期", num("sampleLeadTime")],
+        ["生产周期", num("productionLeadTime")],
+        ["运输周期", getTransitTime()],
+        ["总交期", totalLeadTime],
+        ["", ""],
+        ["数量", r.quantity],
+        ["每箱数量", num("unitsPerCarton")],
+        ["总箱数", r.cartons],
+        ["每箱毛重", num("cartonWeight")],
+        ["总毛重", r.totalKgs],
+        ["外箱尺寸", `${num("cartonLength")} x ${num("cartonWidth")} x ${num("cartonHeight")} cm`],
+        ["总体积 CBM", r.cbm],
+        ["体积重", r.airFreight.volumeWeight],
+        ["计费重量", r.airFreight.chargeableWeight],
+        ["计费方式", tr(r.airFreight.chargeableType)],
+        ["总托盘数", r.pallets],
+        ["", ""],
+        ["单价成本", `${el.unitCostCurrency.value} ${plain(num("unitCost"), 4)}`],
+        ["汇率 USD 到 EUR", el.unitCostCurrency.value === "USD" ? num("exchangeRate") : "不适用"],
+        ["EUR 换算价格", r.unitEur],
+        ["样品费", num("sampleTotal"), r.sampleUnit],
+        ["验货费", num("inspectionTotal"), r.inspectionUnit],
+        ["运费", r.freightTotal, r.freightUnit],
+        ["关税", `${plain(num("dutyRate"), 2)}%`, r.dutyUnit],
+        ["到仓费", `${r.llegadaTotal} (${r.llegada.label})`, r.llegadaUnit],
+        ["托盘费", r.palletUnit * r.quantity, r.palletUnit],
+        ["西班牙派送", `${r.entrega.total} (${r.entrega.label})`, r.entregaUnit],
+        ["融资费", `${plain(num("financingRate"), 2)}%`, r.financingUnit],
+        ["返利", `${plain(num("rappelRate"), 2)}%`, r.rappelUnit],
+        ["最终成本", r.finalCost * r.quantity, r.finalCost],
+        ["", ""],
+        ["目标毛利", `${plain(r.marginPercent, 2)}%`],
+        ["建议报价", r.roundedQuote],
+        ["实际毛利", `${plain(r.actualMargin, 2)}%`],
+        ["销售额", r.roundedQuote * r.quantity],
+        ["利润", (r.roundedQuote - r.finalCost) * r.quantity]
+      ];
+
+      const bodyRows = rows.map((row) => {
+        if (row[0] === "") return '<tr><td colspan="4" class="blank"></td></tr>';
+        return `
+          <tr>
+            <td class="label">${excelText(row[0])}</td>
+            <td>${excelText(row[1])}</td>
+            <td>${row.length > 2 ? excelText(row[2]) : ""}</td>
+            <td>${row.length > 2 ? "unit" : ""}</td>
+          </tr>`;
+      }).join("");
+
+      return `<!doctype html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            table { border-collapse: collapse; font-family: Arial, sans-serif; }
+            td { border: 1px solid #9aa6a2; padding: 6px 8px; min-width: 120px; }
+            .title { background: #176f6b; color: #fff; font-size: 18px; font-weight: bold; text-align: center; }
+            .label { background: #eaf3f1; font-weight: bold; }
+            .blank { border: 0; height: 12px; }
+          </style>
+        </head>
+        <body>
+          <table>
+            <tr><td colspan="4" class="title">ESCANDALLO IMPORTACION</td></tr>
+            ${bodyRows}
+          </table>
+        </body>
+        </html>`;
+    }
+
+    async function exportExcel() {
+      render();
+      const html = buildExcelHtml();
+      const content = "\ufeff" + html;
+      const blob = new Blob([content], { type: "application/vnd.ms-excel;charset=utf-8" });
+      const baseName = `${safeFileName(el.client.value)}-${safeFileName(el.product.value)}-quote`;
+      const name = `${baseName}.xls`;
+
+      if (typeof window.showSaveFilePicker === "function") {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: name,
+            types: [{
+              description: "Excel file",
+              accept: { "application/vnd.ms-excel": [".xls"] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return;
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+        }
+      }
+
+      if (typeof navigator.msSaveOrOpenBlob === "function") {
+        navigator.msSaveOrOpenBlob(blob, name);
+        return;
+      }
+
+      if (window.currentExcelUrl) URL.revokeObjectURL(window.currentExcelUrl);
+      const blobUrl = URL.createObjectURL(blob);
+      window.currentExcelUrl = blobUrl;
+
+      let manualLink = document.getElementById("excelDownloadLink");
+      if (!manualLink) {
+        manualLink = document.createElement("a");
+        manualLink.id = "excelDownloadLink";
+        manualLink.className = "download-link";
+        document.querySelector(".toolbar").appendChild(manualLink);
+      }
+      manualLink.href = blobUrl;
+      manualLink.download = name;
+      manualLink.removeAttribute("target");
+      manualLink.textContent = el.language.value === "zh" ? "下载Excel" : el.language.value === "es" ? "Descargar Excel" : "Download Excel";
+      manualLink.click();
+    }
+
+    function getLlegada(cartons) {
+      if (cartons <= 0) return { total: 0, label: "-" };
+      if (el.llegadaMode.value === "custom") return { total: num("llegadaCustom"), label: "手动" };
+      if (el.shippingMode.value === "courier") return { total: 100, label: "快递固定" };
+      const add = el.shippingMode.value === "air" ? 50 : 0;
+      const modeLabel = el.shippingMode.value === "air" ? "空运" : "海运";
+      if (cartons <= 50) return { total: 400 + add, label: `${modeLabel} 1-50箱` };
+      if (cartons <= 150) return { total: 450 + add, label: `${modeLabel} 51-150箱` };
+      if (cartons <= 300) return { total: 500 + add, label: `${modeLabel} 151-300箱` };
+      if (cartons <= 500) return { total: 550 + add, label: `${modeLabel} 301-500箱` };
+      if (cartons <= 700) return { total: 600 + add, label: `${modeLabel} 501-700箱` };
+      if (cartons <= 900) return { total: 700 + add, label: `${modeLabel} 701-900箱` };
+      if (cartons <= 1200) return { total: 800 + add, label: `${modeLabel} 901-1200箱` };
+      return { total: num("llegadaCustom"), label: "超过1200箱手动" };
+    }
+
+    function getEntrega(pallets) {
+      if (pallets <= 0) return { total: 0, label: "-" };
+      if (el.entregaMode.value === "custom") {
+        return { total: num("entregaCustom"), label: "手动" };
+      }
+      if (pallets <= 3) return { total: 100, label: "1-3托" };
+      if (pallets <= 6) return { total: 170, label: "4-6托" };
+      if (pallets <= 9) return { total: 250, label: "7-9托" };
+      if (pallets <= 15) return { total: 350, label: "10-15托" };
+      if (pallets <= 20) return { total: 450, label: "16-20托" };
+      if (pallets <= 25) return { total: 550, label: "21-25托" };
+      if (pallets <= 30) return { total: 600, label: "26-30托" };
+      return { total: num("entregaCustom"), label: "超过30托手动" };
+    }
+
+    function calculate() {
+      const quantity = Math.max(num("quantity"), 0);
+      const divisorQuantity = quantity > 0 ? quantity : 1;
+      const unitsPerCarton = Math.max(num("unitsPerCarton"), 1);
+      const cartonsRaw = quantity > 0 ? quantity / unitsPerCarton : 0;
+      const cartons = el.roundCartons.checked ? Math.ceil(cartonsRaw) : cartonsRaw;
+      const cbm = (num("cartonLength") * num("cartonWidth") * num("cartonHeight") / 1000000) * cartons;
+      const totalKgs = cartons * num("cartonWeight");
+      const airFreight = getAirFreightTotal(cbm, totalKgs);
+      const freightTotal = ["air", "courier"].includes(el.shippingMode.value) ? airFreight.total : num("freightTotal");
+      const palletPlans = [
+        calculatePalletPlan("EUR 120x80", 120, 80, cartons),
+        calculatePalletPlan("US 120x100", 120, 100, cartons)
+      ];
+      const selectedPlan = el.palletType.value === "US" ? palletPlans[1] : palletPlans[0];
+      const palletsRaw = selectedPlan.actualPallets;
+      const pallets = selectedPlan.actualPallets;
+      const entrega = getEntrega(pallets);
+      const llegada = getLlegada(cartons);
+      const llegadaTotal = llegada.total;
+
+      const unitEur = getUnitCostEur();
+      const freightUnit = freightTotal / divisorQuantity;
+      const sampleUnit = num("sampleTotal") / divisorQuantity;
+      const inspectionUnit = num("inspectionTotal") / divisorQuantity;
+      const dutyUnit = (unitEur + freightUnit) * (num("dutyRate") / 100);
+      const llegadaUnit = llegadaTotal / divisorQuantity;
+      const palletUnit = pallets * num("palletUnitCost") / divisorQuantity;
+      const entregaUnit = entrega.total / divisorQuantity;
+
+      const beforeRates = unitEur + sampleUnit + inspectionUnit + freightUnit + dutyUnit + llegadaUnit + palletUnit + entregaUnit;
+      const financingUnit = beforeRates * (num("financingRate") / 100);
+      const rappelUnit = (beforeRates + financingUnit) * (num("rappelRate") / 100);
+      const finalCost = beforeRates + financingUnit + rappelUnit;
+      const margin = Math.min(num("targetMargin") / 100, 0.95);
+      const quote = finalCost / (1 - margin);
+      const roundedQuote = Math.ceil(quote * 100) / 100;
+      const actualMargin = roundedQuote > 0 ? (roundedQuote - finalCost) / roundedQuote * 100 : 0;
+
+      return {
+        quantity, cartons, cartonsRaw, cbm, totalKgs, airFreight, freightTotal, pallets, palletsRaw, palletPlans, selectedPlan, entrega, llegada, llegadaTotal,
+        unitEur, freightUnit, sampleUnit, inspectionUnit, dutyUnit, llegadaUnit,
+        palletUnit, entregaUnit, financingUnit, rappelUnit, finalCost, quote, roundedQuote,
+        actualMargin, marginPercent: num("targetMargin")
+      };
+    }
+
+    function render() {
+      applyLanguage();
+      const transitTime = getTransitTime();
+      if (el.transitMode.value === "auto") {
+        el.transitTime.value = transitTime;
+      }
+      const totalLeadTime = getTotalLeadTime();
+      el.totalLeadTime.value = totalLeadTime;
+      el.deliveryDate.value = addDays(el.startDate.value, totalLeadTime);
+      el.exchangeRate.disabled = el.unitCostCurrency.value === "EUR";
+      el.styleCount.disabled = el.styleMode.value !== "yes";
+      el.unitCostEurDisplay.value = getUnitCostEur().toFixed(4);
+      renderStyleQuantityFields(num("quantity"));
+      enforceStyleQuantityLimit();
+
+      const r = calculate();
+      el.chargeableWeightDisplay.value = plain(r.airFreight.chargeableWeight, 2).replace(/,/g, "");
+      el.chargeableTypeDisplay.value = tr(r.airFreight.chargeableType);
+      el.freightTotal.disabled = ["air", "courier"].includes(el.shippingMode.value);
+      if (["air", "courier"].includes(el.shippingMode.value)) {
+        el.freightTotal.value = r.freightTotal.toFixed(2);
+      }
+
+      if (el.llegadaMode.value === "auto" && !r.llegada.label.includes("手动")) {
+        el.llegadaCustom.value = r.llegadaTotal;
+      }
+      if (el.entregaMode.value === "auto" && !r.entrega.label.includes("手动")) {
+        el.entregaCustom.value = r.entrega.total;
+      }
+      el.cartonsDisplay.value = plain(r.cartons, 2).replace(/,/g, "");
+      el.cbmDisplay.value = plain(r.cbm, 3).replace(/,/g, "");
+      el.palletsDisplay.value = plain(r.pallets, 2).replace(/,/g, "");
+
+      document.getElementById("quotePrice").textContent = money(r.roundedQuote, 2);
+      document.getElementById("quoteSubtitle").textContent = tr("targetMargin") + " " + plain(r.marginPercent, 1) + "% / " + tr("actual") + " " + plain(r.actualMargin, 2) + "%";
+      document.getElementById("finalCost").textContent = money(r.finalCost, 3);
+      document.getElementById("actualMargin").textContent = pct(r.actualMargin);
+      document.getElementById("cartons").textContent = plain(r.cartons, 2);
+      document.getElementById("pallets").textContent = plain(r.pallets, 2);
+      document.getElementById("cbm").textContent = plain(r.cbm, 3);
+      document.getElementById("pesoVol").textContent = plain(r.airFreight.volumeWeight, 2);
+      document.getElementById("pesoBruto").textContent = plain(r.totalKgs, 2);
+      document.getElementById("deliveryDateKpi").textContent = formatDate(el.deliveryDate.value);
+      renderPalletPlanner(r.palletPlans);
+
+      const warning = document.getElementById("warning");
+      const warnings = [];
+      if (r.cartons > 1200 && el.llegadaMode.value !== "custom") {
+        warnings.push("总箱数超过1200箱，Llegada 当前使用手动金额。");
+      }
+      if (r.pallets > 30 && el.entregaMode.value !== "custom") {
+        warnings.push("托盘超过30托，Entrega 当前使用手动金额。");
+      }
+      if (el.styleMode.value === "yes") {
+        const styleTotal = getStyleQuantities(r.quantity).reduce((sum, value) => sum + value, 0);
+        if (Math.abs(styleTotal - r.quantity) > 0.01) {
+          warnings.push(`分款数量合计 ${plain(styleTotal, 0)}，与总数量 ${plain(r.quantity, 0)} 不一致。`);
+        }
+      }
+      warning.textContent = warnings.join(" ");
+      warning.classList.toggle("show", warnings.length > 0);
+
+      const rows = [
+        [tr("eurCost"), r.unitEur * r.quantity, r.unitEur],
+        [tr("sampleFee"), num("sampleTotal"), r.sampleUnit],
+        [tr("inspectionFee"), num("inspectionTotal"), r.inspectionUnit],
+        [tr("freight"), r.freightTotal, r.freightUnit],
+        [tr("duty"), r.dutyUnit * r.quantity, r.dutyUnit],
+        [tr("llegada") + " " + r.llegada.label, r.llegadaTotal, r.llegadaUnit],
+        [tr("palletCost"), r.palletUnit * r.quantity, r.palletUnit],
+        [tr("entrega") + " " + r.entrega.label, r.entrega.total, r.entregaUnit],
+        [tr("financing"), r.financingUnit * r.quantity, r.financingUnit],
+        [tr("rappel"), r.rappelUnit * r.quantity, r.rappelUnit],
+        [tr("finalCost"), r.finalCost * r.quantity, r.finalCost]
+      ];
+
+      document.getElementById("costRows").innerHTML = rows.map(([name, total, unit]) => `
+        <tr>
+          <td>${name}</td>
+          <td>${money(total, 2)}</td>
+          <td>${money(unit, 4)}</td>
+        </tr>
+      `).join("");
+
+      const copy = [
+        `${tr("client")}：${el.client.value}`,
+        `${tr("product")}：${el.product.value}`,
+        `${tr("shippingMode")}：${getShippingModeLabel()}`,
+        `${tr("shippingPort")}：${getSelectedText(el.shippingPort)}`,
+        `${tr("quantity")}：${plain(r.quantity, 0)} pcs`,
+        `${tr("totalLead")}：${plain(totalLeadTime, 0)}`,
+        `${tr("startDate")}：${formatDate(el.startDate.value)}`,
+        `${tr("deliveryDate")}：${formatDate(el.deliveryDate.value)}`,
+        `${tr("unitCost")}：${el.unitCostCurrency.value} ${plain(num("unitCost"), 4)}`,
+        `${tr("exchange")}：${el.unitCostCurrency.value === "USD" ? plain(num("exchangeRate"), 4) : tr("notApplicable")}`,
+        `${tr("cartonsTotal")}：${plain(r.cartons, 2)}`,
+        `TOTAL CBM：${plain(r.cbm, 3)}`,
+        `${tr("chargeableWeight")}：${plain(r.airFreight.chargeableWeight, 2)}`,
+        `${tr("chargeableType")}：${tr(r.airFreight.chargeableType)}`,
+        `${tr("airFreightRmbKg")}：${plain(num("airFreightRmbKg"), 2)}`,
+        `${tr("freight")}：${money(r.freightTotal, 2)}`,
+        `${tr("palletsTotal")}：${plain(r.pallets, 2)}`,
+        `${tr("llegada")}：${money(r.llegadaTotal, 0)} (${r.llegada.label})`,
+        `${tr("entrega")}：${money(r.entrega.total, 0)} (${r.entrega.label})`,
+        `${tr("finalCost")}：${money(r.finalCost, 3)} / pc`,
+        `${tr("targetMargin")}：${plain(r.marginPercent, 1)}%`,
+        `${tr("quote")}：${money(r.roundedQuote, 2)} / pc`,
+        `${tr("actualMargin")}：${plain(r.actualMargin, 2)}%`
+      ].join("\\n");
+      document.getElementById("copyText").value = copy;
+    }
+
+    function reset() {
+      for (const [id, value] of Object.entries(defaults)) {
+        if (el[id].type === "checkbox") {
+          el[id].checked = value;
+        } else {
+          el[id].value = value;
+        }
+      }
+      el.startDate.value = todayText();
+      render();
+    }
+
+    ids
+      .filter((id) => ![
+        "llegadaCustom", "entregaCustom", "transitTime", "totalLeadTime",
+        "deliveryDate", "cartonsDisplay", "cbmDisplay", "chargeableWeightDisplay", "chargeableTypeDisplay", "palletsDisplay", "unitCostEurDisplay"
+      ].includes(id))
+      .forEach((id) => el[id].addEventListener("input", render));
+    ids.forEach((id) => el[id].addEventListener("change", render));
+    el.entregaCustom.addEventListener("input", () => {
+      el.entregaMode.value = "custom";
+      render();
+    });
+    el.llegadaCustom.addEventListener("input", () => {
+      el.llegadaMode.value = "custom";
+      render();
+    });
+    el.entregaMode.addEventListener("change", render);
+    el.llegadaMode.addEventListener("change", render);
+    el.transitTime.addEventListener("input", () => {
+      el.transitMode.value = "custom";
+      render();
+    });
+    el.styleMode.addEventListener("change", () => {
+      renderStyleQuantityFields(num("quantity"), true);
+      render();
+    });
+    el.styleCount.addEventListener("input", () => {
+      renderStyleQuantityFields(num("quantity"), true);
+      render();
+    });
+    el.quantity.addEventListener("input", () => {
+      renderStyleQuantityFields(num("quantity"), true);
+      render();
+    });
+    el.airFreightRmbKg.addEventListener("input", render);
+    el.shippingMode.addEventListener("change", render);
+
+    document.getElementById("resetBtn").addEventListener("click", reset);
+    document.getElementById("exportBtn").addEventListener("click", exportExcel);
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      const text = document.getElementById("copyText").value;
+      try {
+        await navigator.clipboard.writeText(text);
+        document.getElementById("copyBtn").textContent = tr("copied");
+        setTimeout(() => document.getElementById("copyBtn").textContent = tr("copy"), 1200);
+      } catch {
+        document.getElementById("copyText").select();
+      }
+    });
+
+    if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    }
+
+    reset();
+  </script>
+</body>
+</html>
