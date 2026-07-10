@@ -165,8 +165,13 @@
       grid-column: 1 / -1;
     }
 
+    .grid > .field:not(.compact-group) {
+      max-width: 260px;
+    }
+
     .wide-field {
       grid-column: 1 / -1;
+      max-width: none;
     }
 
     .span-2 {
@@ -241,7 +246,7 @@
     }
 
     input[type="number"] {
-      text-align: right;
+      text-align: left;
       font-variant-numeric: tabular-nums;
     }
 
