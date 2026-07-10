@@ -297,15 +297,86 @@
       }
     }
 
-    input[type="date"] {
-      min-width: 150px;
-      color-scheme: light;
+    .date-control {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 36px;
+      gap: 6px;
     }
 
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      display: block;
-      opacity: 1;
-      cursor: pointer;
+    .date-control button {
+      min-height: 32px;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .date-picker {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 6px);
+      left: 0;
+      width: min(320px, calc(100vw - 32px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 10px;
+    }
+
+    .date-picker[hidden] {
+      display: none;
+    }
+
+    .date-picker-head,
+    .date-picker-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .date-picker-title {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .date-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      margin: 10px 0;
+    }
+
+    .date-picker-grid span,
+    .date-picker-grid button {
+      min-height: 30px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .date-picker-grid span {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .date-picker-grid button {
+      border: 1px solid transparent;
+      background: #f8faf8;
+      font-weight: 600;
+    }
+
+    .date-picker-grid button.is-muted {
+      color: #9aa6a2;
+    }
+
+    .date-picker-grid button.is-selected {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
     }
 
     .summary {
@@ -611,11 +682,15 @@
           </div>
           <div class="field">
             <label for="startDate">开始日期</label>
-            <input id="startDate" type="date">
+            <div class="date-control">
+              <input id="startDate" type="text" readonly>
+              <button type="button" id="startDateButton" aria-label="Open calendar">▾</button>
+              <div id="datePicker" class="date-picker" hidden></div>
+            </div>
           </div>
           <div class="field">
             <label for="deliveryDate">交货日期</label>
-            <input id="deliveryDate" type="date" readonly>
+            <input id="deliveryDate" type="text" readonly>
           </div>
         </div>
       </section>
@@ -876,11 +951,11 @@
             <strong id="cbm">0</strong>
           </div>
           <div class="kpi">
-            <span>PESO VOL</span>
+            <span id="pesoVolLabel">PESO VOL</span>
             <strong id="pesoVol">0</strong>
           </div>
           <div class="kpi">
-            <span>PESO BRUTO</span>
+            <span id="pesoBrutoLabel">PESO BRUTO</span>
             <strong id="pesoBruto">0</strong>
           </div>
           <div class="kpi">
@@ -994,6 +1069,7 @@
         entrega: "西班牙派送", autoPalletTier: "自动按托盘档位", entregaManual: "派送费手动 EUR",
         palletsTotal: "总托盘数", palletType: "计入报价的托盘类型", styleMode: "分款打托", noStyleSplit: "不分款", yesStyleSplit: "分款", styleCount: "款数", styleQty: "款式数量", financing: "手续费 %", rappel: "返利 %", targetMargin: "目标毛利 %",
         quoteLabel: "建议报价 EUR / 件", finalCost: "最终成本", margin: "毛利", totalPrice: "价格总额", vatTotal: "税后价格总额 21% VAT", pallet: "托盘",
+        pesoVolLabel: "体积重", pesoBrutoLabel: "总毛重",
         totalCbm: "总体积 CBM", palletizedCbm: "打托总体积 CBM", eta: "预计交货日期", palletLoading: "托盘装箱",
         maxHeight: "限高 含托盘 cm", palletHeight: "托盘高度 cm", perLayer: "每层", layers: "层数",
         boxesPerPallet: "实际每托箱数", mixedPallets: "混托托数", palletsByStyle: "每款托数", actualPallets: "分款实际托数", item: "项目", total: "总额", unit: "单件",
@@ -1020,6 +1096,7 @@
         entrega: "Spain Delivery", autoPalletTier: "Auto by Pallet Tier", entregaManual: "Delivery Manual EUR",
         palletsTotal: "Total Pallets", palletType: "Pallet Type for Quote", styleMode: "Style Split", noStyleSplit: "No Split", yesStyleSplit: "Split by Style", styleCount: "Style Count", styleQty: "Style Quantity", financing: "Financing %", rappel: "Rebate %", targetMargin: "Target Margin %",
         quoteLabel: "Suggested Price EUR / pc", finalCost: "Final Cost", margin: "Margin", totalPrice: "Total Price", vatTotal: "Total incl. 21% VAT", pallet: "Pallet",
+        pesoVolLabel: "Vol KG", pesoBrutoLabel: "GW",
         totalCbm: "Total CBM", palletizedCbm: "Palletized Total CBM", eta: "Estimated Delivery Date", palletLoading: "Pallet Loading",
         maxHeight: "Max Height incl. Pallet cm", palletHeight: "Pallet Height cm", perLayer: "Per Layer", layers: "Layers",
         boxesPerPallet: "Actual Cartons/Pallet", mixedPallets: "Mixed Pallets", palletsByStyle: "Pallets/Style", actualPallets: "Style-separated Pallets", item: "Item", total: "Total", unit: "Unit",
@@ -1046,6 +1123,7 @@
         entrega: "Entrega España", autoPalletTier: "Auto por Tramo de Pallets", entregaManual: "Entrega Manual EUR",
         palletsTotal: "Total Pallets", palletType: "Tipo de Pallet para Cotización", styleMode: "Separar por Modelo", noStyleSplit: "Sin Separar", yesStyleSplit: "Separar", styleCount: "Número de Modelos", styleQty: "Cantidad Modelo", financing: "Financiación %", rappel: "Rappel %", targetMargin: "Margen Objetivo %",
         quoteLabel: "Precio Sugerido EUR / ud", finalCost: "Coste Final", margin: "Margen", totalPrice: "Precio Total", vatTotal: "Total con 21% IVA", pallet: "Pallet",
+        pesoVolLabel: "PESO VOL", pesoBrutoLabel: "PESO BRUTO",
         totalCbm: "CBM Total", palletizedCbm: "CBM Total Paletizado", eta: "Fecha Entrega Estimada", palletLoading: "Carga de Pallets",
         maxHeight: "Altura Máx incl. Pallet cm", palletHeight: "Altura Pallet cm", perLayer: "Por Capa", layers: "Capas",
         boxesPerPallet: "Cajas Reales/Pallet", mixedPallets: "Pallets Mezclados", palletsByStyle: "Pallets/Modelo", actualPallets: "Pallets por Modelo", item: "Concepto", total: "Total", unit: "Unidad",
@@ -1072,10 +1150,18 @@
       return "zh-CN";
     }
 
+    function currentLangCode() {
+      if (el.language.value === "en") return "en";
+      if (el.language.value === "es") return "es";
+      return "zh-CN";
+    }
+
     function parseDateInput(dateText) {
       if (!dateText) return null;
       const value = String(dateText).trim();
       let match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      match = value.match(/^(\d{4})[\/.](\d{1,2})[\/.](\d{1,2})$/);
       if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
       match = value.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
       if (!match) return null;
@@ -1107,16 +1193,110 @@
     function todayText() {
       return toIsoDate(new Date());
     }
+
+    let calendarMonth = null;
+
+    function calendarWords() {
+      if (el.language.value === "en") {
+        return { weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], clear: "Clear", today: "Today" };
+      }
+      if (el.language.value === "es") {
+        return { weekdays: ["L", "M", "X", "J", "V", "S", "D"], clear: "Borrar", today: "Hoy" };
+      }
+      return { weekdays: ["一", "二", "三", "四", "五", "六", "日"], clear: "清除", today: "今天" };
+    }
+
+    function calendarTitle(date) {
+      return new Intl.DateTimeFormat(currentLocale(), {
+        year: "numeric",
+        month: "long"
+      }).format(date);
+    }
+
+    function openDatePicker() {
+      const selected = parseDateInput(el.startDate.value) || new Date();
+      calendarMonth = new Date(selected.getFullYear(), selected.getMonth(), 1);
+      renderDatePicker();
+      document.getElementById("datePicker").hidden = false;
+    }
+
+    function closeDatePicker() {
+      document.getElementById("datePicker").hidden = true;
+    }
+
+    function renderDatePicker() {
+      const picker = document.getElementById("datePicker");
+      if (!picker || !calendarMonth) return;
+      const words = calendarWords();
+      const selectedIso = el.startDate.value;
+      const todayIso = todayText();
+      const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+      const offset = (first.getDay() + 6) % 7;
+      const gridStart = new Date(first);
+      gridStart.setDate(first.getDate() - offset);
+      const days = Array.from({ length: 42 }, (_, index) => {
+        const date = new Date(gridStart);
+        date.setDate(gridStart.getDate() + index);
+        const iso = toIsoDate(date);
+        const classes = [
+          date.getMonth() !== calendarMonth.getMonth() ? "is-muted" : "",
+          iso === selectedIso ? "is-selected" : ""
+        ].filter(Boolean).join(" ");
+        return `<button type="button" class="${classes}" data-date="${iso}">${date.getDate()}</button>`;
+      }).join("");
+      picker.innerHTML = `
+        <div class="date-picker-head">
+          <button type="button" data-action="prev">‹</button>
+          <div class="date-picker-title">${calendarTitle(calendarMonth)}</div>
+          <button type="button" data-action="next">›</button>
+        </div>
+        <div class="date-picker-grid">
+          ${words.weekdays.map((day) => `<span>${day}</span>`).join("")}
+          ${days}
+        </div>
+        <div class="date-picker-actions">
+          <button type="button" data-action="clear">${words.clear}</button>
+          <button type="button" data-date="${todayIso}">${words.today}</button>
+        </div>
+      `;
+      picker.onclick = (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        event.preventDefault();
+        const action = button.dataset.action;
+        if (action === "prev" || action === "next") {
+          calendarMonth.setMonth(calendarMonth.getMonth() + (action === "next" ? 1 : -1));
+          renderDatePicker();
+          return;
+        }
+        if (action === "clear") {
+          el.startDate.value = "";
+          closeDatePicker();
+          render();
+          return;
+        }
+        if (button.dataset.date) {
+          el.startDate.value = button.dataset.date;
+          closeDatePicker();
+          render();
+        }
+      };
+    }
+
     function setText(selector, key) {
       const node = document.querySelector(selector);
       if (node) node.textContent = tr(key);
     }
 
     function applyLanguage() {
-      document.documentElement.lang = currentLocale();
+      const langCode = currentLangCode();
+      document.documentElement.lang = langCode;
+      document.body.lang = langCode;
       document.title = "Quotii";
-      el.startDate.lang = currentLocale();
-      el.deliveryDate.lang = currentLocale();
+      el.startDate.lang = langCode;
+      el.deliveryDate.lang = langCode;
+      el.startDate.setAttribute("lang", langCode);
+      el.deliveryDate.setAttribute("lang", langCode);
       const map = {
         "h1": "title", ".subtitle": "subtitle", "#resetBtn": "reset", "#exportBtn": "exportExcel", "#copyBtn": "copy",
         "main section:nth-of-type(1) h2": "order", "label[for='client']": "client", "label[for='product']": "product",
@@ -1150,6 +1330,7 @@
         ".quote-number .label": "quoteLabel", ".kpi:nth-child(1) span": "finalCost", ".kpi:nth-child(2) span": "margin",
         "#totalPriceLabel": "totalPrice", "#vatTotalLabel": "vatTotal",
         ".kpi:nth-child(5) span": "cartonsTotal", ".kpi:nth-child(6) span": "pallet", ".kpi:nth-child(7) span": "totalCbm",
+        "#pesoVolLabel": "pesoVolLabel", "#pesoBrutoLabel": "pesoBrutoLabel",
         ".kpi:nth-child(10) span": "eta",
         "label[for='palletMaxHeight']": "maxHeight", "label[for='palletBaseHeight']": "palletHeight",
         ".mini-table th:nth-child(1)": "pallet", ".mini-table th:nth-child(2)": "perLayer", ".mini-table th:nth-child(3)": "layers",
@@ -1175,6 +1356,7 @@
       document.querySelector("#entregaMode option[value='custom']").textContent = tr("manualInput");
       document.querySelector("#styleMode option[value='no']").textContent = tr("noStyleSplit");
       document.querySelector("#styleMode option[value='yes']").textContent = tr("yesStyleSplit");
+      if (!document.getElementById("datePicker").hidden) renderDatePicker();
     }
 
     function num(id) {
@@ -1388,7 +1570,7 @@
         ["打托出货", el.palletizedShipment.checked ? "是" : "否"],
         ["出货托盘类型", el.palletizedShipment.checked ? getSelectedText(el.shipmentPalletType) : "不适用"],
         ["开始日期", formatDate(el.startDate.value)],
-        ["预计交货日期", formatDate(el.deliveryDate.value)],
+        ["预计交货日期", formatDate(el.deliveryDate.dataset.iso || el.deliveryDate.value)],
         ["样品周期", num("sampleLeadTime")],
         ["生产周期", num("productionLeadTime")],
         ["运输周期", getTransitTime()],
@@ -1785,7 +1967,9 @@
       }
       const totalLeadTime = getTotalLeadTime();
       el.totalLeadTime.value = totalLeadTime;
-      el.deliveryDate.value = addDays(el.startDate.value, totalLeadTime);
+      const deliveryIso = addDays(el.startDate.value, totalLeadTime);
+      el.deliveryDate.dataset.iso = deliveryIso;
+      el.deliveryDate.value = formatDate(deliveryIso);
       el.exchangeRate.disabled = el.unitCostCurrency.value === "EUR";
       el.styleCount.disabled = el.styleMode.value !== "yes";
       document.getElementById("shipmentPalletTypeWrap").style.display = el.palletizedShipment.checked ? "" : "none";
@@ -1834,7 +2018,7 @@
       document.getElementById("cbm").textContent = plain(r.cbm, 3);
       document.getElementById("pesoVol").textContent = plain(r.airFreight.volumeWeight, 2);
       document.getElementById("pesoBruto").textContent = plain(r.totalKgs, 2);
-      document.getElementById("deliveryDateKpi").textContent = formatDate(el.deliveryDate.value);
+      document.getElementById("deliveryDateKpi").textContent = formatDate(el.deliveryDate.dataset.iso || el.deliveryDate.value);
       renderPalletPlanner(r.palletPlans);
 
       const warning = document.getElementById("warning");
@@ -1886,7 +2070,7 @@
         `${tr("quantity")}：${plain(r.quantity, 0)} pcs`,
         `${tr("totalLead")}：${plain(totalLeadTime, 0)}`,
         `${tr("startDate")}：${formatDate(el.startDate.value)}`,
-        `${tr("deliveryDate")}：${formatDate(el.deliveryDate.value)}`,
+        `${tr("deliveryDate")}：${formatDate(el.deliveryDate.dataset.iso || el.deliveryDate.value)}`,
         `${tr("unitCost")}：${el.unitCostCurrency.value} ${plain(num("unitCost"), 4)}`,
         `${tr("exchange")}：${el.unitCostCurrency.value === "USD" ? plain(num("exchangeRate"), 4) : tr("notApplicable")}`,
         `${tr("cartonsTotal")}：${plain(r.cartons, 2)}`,
@@ -1927,6 +2111,20 @@
       ].includes(id))
       .forEach((id) => el[id].addEventListener("input", render));
     ids.forEach((id) => el[id].addEventListener("change", render));
+    document.getElementById("startDateButton").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDatePicker();
+    });
+    el.startDate.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDatePicker();
+    });
+    document.addEventListener("click", (event) => {
+      const picker = document.getElementById("datePicker");
+      if (picker.hidden) return;
+      if (picker.contains(event.target) || document.querySelector(".date-control").contains(event.target)) return;
+      closeDatePicker();
+    });
     el.entregaCustom.addEventListener("input", () => {
       el.entregaMode.value = "custom";
       render();
