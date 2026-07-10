@@ -570,6 +570,17 @@
                   <option value="custom">手动输入</option>
                 </select>
               </div>
+              <label class="switch-row">
+                <input id="palletizedShipment" type="checkbox">
+                <span id="palletizedShipmentLabel">打托出货</span>
+              </label>
+              <div class="field" id="shipmentPalletTypeWrap">
+                <label for="shipmentPalletType">出货托盘类型</label>
+                <select id="shipmentPalletType">
+                  <option value="EUR">欧托</option>
+                  <option value="US">美托</option>
+                </select>
+              </div>
             </div>
           </div>
           <div class="field compact-group wide-field">
@@ -804,7 +815,7 @@
             <div class="note" id="palletPlannerNote">EUR pallet 按 120 x 80 cm，US pallet 按 120 x 100 cm；箱子不超出托盘边缘。</div>
           </div>
           <div class="field">
-            <label for="financingRate">融资费 %</label>
+            <label for="financingRate">手续费 %</label>
             <input id="financingRate" type="number" value="2.5" min="0" step="0.1">
           </div>
           <div class="field">
@@ -837,6 +848,14 @@
           <div class="kpi">
             <span>毛利</span>
             <strong id="actualMargin">0.0%</strong>
+          </div>
+          <div class="kpi">
+            <span id="totalPriceLabel">价格总额</span>
+            <strong id="totalPrice">€0.00</strong>
+          </div>
+          <div class="kpi">
+            <span id="vatTotalLabel">税后价格总额 21% VAT</span>
+            <strong id="vatTotal">€0.00</strong>
           </div>
           <div class="kpi">
             <span>总箱数</span>
@@ -885,7 +904,7 @@
 
   <script>
     const ids = [
-      "language", "client", "product", "shippingMode", "shippingPort", "sampleLeadTime", "productionLeadTime",
+      "language", "client", "product", "shippingMode", "shippingPort", "palletizedShipment", "shipmentPalletType", "sampleLeadTime", "productionLeadTime",
       "transitMode", "transitTime", "totalLeadTime", "startDate", "deliveryDate",
       "quantity", "unitCostCurrency", "unitCost", "unitCostEurDisplay", "exchangeRate",
       "airFreightRmbKg", "chargeableWeightDisplay", "chargeableTypeDisplay", "freightTotal", "dutyRate", "targetMargin", "unitsPerCarton", "cartonWeight",
@@ -901,6 +920,8 @@
       product: "",
       shippingMode: "sea",
       shippingPort: "宁波",
+      palletizedShipment: false,
+      shipmentPalletType: "EUR",
       sampleLeadTime: 0,
       productionLeadTime: 0,
       transitMode: "auto",
@@ -953,6 +974,7 @@
         reset: "重置示例", exportExcel: "导出Excel", copy: "复制报价", copied: "已复制",
         order: "订单", client: "客户", product: "产品",
         shippingLead: "运输与交期", shippingMode: "运输方式", shippingPort: "出货港", sea: "海运", air: "空运", courier: "快递",
+        palletizedShipment: "打托出货", shipmentPalletType: "出货托盘类型", eurPallet: "欧托", usPallet: "美托",
         sampleLead: "样品周期 天", productionLead: "生产周期 天", transitMode: "运输周期",
         autoTransport: "自动按运输方式", manualInput: "手动输入", transitTime: "运输周期 天",
         totalLead: "总交期 天", startDate: "开始日期", deliveryDate: "交货日期",
@@ -964,12 +986,12 @@
         rules: "费用规则", sampleFee: "样品费 EUR", inspectionFee: "验货费 EUR", llegada: "到仓费",
         autoCartonTier: "自动按箱数档位", llegadaManual: "到仓费手动 EUR", palletCost: "托盘成本 EUR/托",
         entrega: "西班牙派送", autoPalletTier: "自动按托盘档位", entregaManual: "派送费手动 EUR",
-        palletsTotal: "总托盘数", palletType: "计入报价的托盘类型", styleMode: "分款打托", noStyleSplit: "不分款", yesStyleSplit: "分款", styleCount: "款数", styleQty: "款式数量", financing: "融资费 %", rappel: "返利 %", targetMargin: "目标毛利 %",
-        quoteLabel: "建议报价 EUR / 件", finalCost: "最终成本", margin: "毛利", pallet: "托盘",
-        totalCbm: "总体积 CBM", eta: "预计交货日期", palletLoading: "托盘装箱",
+        palletsTotal: "总托盘数", palletType: "计入报价的托盘类型", styleMode: "分款打托", noStyleSplit: "不分款", yesStyleSplit: "分款", styleCount: "款数", styleQty: "款式数量", financing: "手续费 %", rappel: "返利 %", targetMargin: "目标毛利 %",
+        quoteLabel: "建议报价 EUR / 件", finalCost: "最终成本", margin: "毛利", totalPrice: "价格总额", vatTotal: "税后价格总额 21% VAT", pallet: "托盘",
+        totalCbm: "总体积 CBM", palletizedCbm: "打托总体积 CBM", eta: "预计交货日期", palletLoading: "托盘装箱",
         maxHeight: "限高 含托盘 cm", palletHeight: "托盘高度 cm", perLayer: "每层", layers: "层数",
-        boxesPerPallet: "每托箱数", mixedPallets: "混托托数", palletsByStyle: "每款托数", actualPallets: "分款实际托数", item: "项目", total: "总额", unit: "单件",
-        actual: "实际", quote: "建议报价", actualMargin: "实际毛利率", notApplicable: "不适用",
+        boxesPerPallet: "实际每托箱数", mixedPallets: "混托托数", palletsByStyle: "每款托数", actualPallets: "分款实际托数", item: "项目", total: "总额", unit: "单件",
+        actual: "实际", quote: "建议报价", actualMargin: "实际毛利率", yes: "是", no: "否", notApplicable: "不适用",
         cartonSpec: "箱规", palletNote: "EUR pallet 按 120 x 80 cm，US pallet 按 120 x 100 cm；箱子不超出托盘边缘。"
       },
       en: {
@@ -978,6 +1000,7 @@
         reset: "Reset Example", exportExcel: "Export Excel", copy: "Copy Quote", copied: "Copied",
         order: "Order", client: "Client", product: "Product",
         shippingLead: "Shipping & Lead Time", shippingMode: "Shipping Mode", shippingPort: "Port of Loading", sea: "Sea", air: "Air", courier: "Courier",
+        palletizedShipment: "Palletized Shipment", shipmentPalletType: "Shipment Pallet Type", eurPallet: "EUR Pallet", usPallet: "US Pallet",
         sampleLead: "Sample Lead Time Days", productionLead: "Production Lead Time Days", transitMode: "Transit Time",
         autoTransport: "Auto by Shipping Mode", manualInput: "Manual Input", transitTime: "Transit Time Days",
         totalLead: "Total Lead Time Days", startDate: "Start Date", deliveryDate: "Delivery Date",
@@ -990,11 +1013,11 @@
         autoCartonTier: "Auto by Carton Tier", llegadaManual: "Arrival Manual EUR", palletCost: "Pallet Cost EUR/pallet",
         entrega: "Spain Delivery", autoPalletTier: "Auto by Pallet Tier", entregaManual: "Delivery Manual EUR",
         palletsTotal: "Total Pallets", palletType: "Pallet Type for Quote", styleMode: "Style Split", noStyleSplit: "No Split", yesStyleSplit: "Split by Style", styleCount: "Style Count", styleQty: "Style Quantity", financing: "Financing %", rappel: "Rebate %", targetMargin: "Target Margin %",
-        quoteLabel: "Suggested Price EUR / pc", finalCost: "Final Cost", margin: "Margin", pallet: "Pallet",
-        totalCbm: "Total CBM", eta: "Estimated Delivery Date", palletLoading: "Pallet Loading",
+        quoteLabel: "Suggested Price EUR / pc", finalCost: "Final Cost", margin: "Margin", totalPrice: "Total Price", vatTotal: "Total incl. 21% VAT", pallet: "Pallet",
+        totalCbm: "Total CBM", palletizedCbm: "Palletized Total CBM", eta: "Estimated Delivery Date", palletLoading: "Pallet Loading",
         maxHeight: "Max Height incl. Pallet cm", palletHeight: "Pallet Height cm", perLayer: "Per Layer", layers: "Layers",
-        boxesPerPallet: "Cartons/Pallet", mixedPallets: "Mixed Pallets", palletsByStyle: "Pallets/Style", actualPallets: "Style-separated Pallets", item: "Item", total: "Total", unit: "Unit",
-        actual: "Actual", quote: "Suggested Price", actualMargin: "Actual Margin", notApplicable: "N/A",
+        boxesPerPallet: "Actual Cartons/Pallet", mixedPallets: "Mixed Pallets", palletsByStyle: "Pallets/Style", actualPallets: "Style-separated Pallets", item: "Item", total: "Total", unit: "Unit",
+        actual: "Actual", quote: "Suggested Price", actualMargin: "Actual Margin", yes: "Yes", no: "No", notApplicable: "N/A",
         cartonSpec: "Carton size", palletNote: "EUR pallet is 120 x 80 cm, US pallet is 120 x 100 cm; cartons do not exceed pallet edges."
       },
       es: {
@@ -1003,6 +1026,7 @@
         reset: "Restablecer", exportExcel: "Exportar Excel", copy: "Copiar Oferta", copied: "Copiado",
         order: "Pedido", client: "Cliente", product: "Producto",
         shippingLead: "Transporte y Plazo", shippingMode: "Transporte", shippingPort: "Puerto de Carga", sea: "Marítimo", air: "Aéreo", courier: "Courier",
+        palletizedShipment: "Envío Paletizado", shipmentPalletType: "Tipo de Pallet", eurPallet: "Pallet EUR", usPallet: "Pallet US",
         sampleLead: "Plazo de Muestra Días", productionLead: "Plazo de Producción Días", transitMode: "Tránsito",
         autoTransport: "Auto por Transporte", manualInput: "Manual", transitTime: "Tránsito Días",
         totalLead: "Plazo Total Días", startDate: "Fecha Inicio", deliveryDate: "Fecha Entrega",
@@ -1015,11 +1039,11 @@
         autoCartonTier: "Auto por Tramo de Cajas", llegadaManual: "Llegada Manual EUR", palletCost: "Coste Pallet EUR/pallet",
         entrega: "Entrega España", autoPalletTier: "Auto por Tramo de Pallets", entregaManual: "Entrega Manual EUR",
         palletsTotal: "Total Pallets", palletType: "Tipo de Pallet para Cotización", styleMode: "Separar por Modelo", noStyleSplit: "Sin Separar", yesStyleSplit: "Separar", styleCount: "Número de Modelos", styleQty: "Cantidad Modelo", financing: "Financiación %", rappel: "Rappel %", targetMargin: "Margen Objetivo %",
-        quoteLabel: "Precio Sugerido EUR / ud", finalCost: "Coste Final", margin: "Margen", pallet: "Pallet",
-        totalCbm: "CBM Total", eta: "Fecha Entrega Estimada", palletLoading: "Carga de Pallets",
+        quoteLabel: "Precio Sugerido EUR / ud", finalCost: "Coste Final", margin: "Margen", totalPrice: "Precio Total", vatTotal: "Total con 21% IVA", pallet: "Pallet",
+        totalCbm: "CBM Total", palletizedCbm: "CBM Total Paletizado", eta: "Fecha Entrega Estimada", palletLoading: "Carga de Pallets",
         maxHeight: "Altura Máx incl. Pallet cm", palletHeight: "Altura Pallet cm", perLayer: "Por Capa", layers: "Capas",
-        boxesPerPallet: "Cajas/Pallet", mixedPallets: "Pallets Mezclados", palletsByStyle: "Pallets/Modelo", actualPallets: "Pallets por Modelo", item: "Concepto", total: "Total", unit: "Unidad",
-        actual: "Real", quote: "Precio Sugerido", actualMargin: "Margen Real", notApplicable: "N/A",
+        boxesPerPallet: "Cajas Reales/Pallet", mixedPallets: "Pallets Mezclados", palletsByStyle: "Pallets/Modelo", actualPallets: "Pallets por Modelo", item: "Concepto", total: "Total", unit: "Unidad",
+        actual: "Real", quote: "Precio Sugerido", actualMargin: "Margen Real", yes: "Sí", no: "No", notApplicable: "N/A",
         cartonSpec: "Medida caja", palletNote: "Pallet EUR 120 x 80 cm, pallet US 120 x 100 cm; las cajas no sobresalen del pallet."
       }
     };
@@ -1092,6 +1116,8 @@
         "main section:nth-of-type(1) h2": "order", "label[for='client']": "client", "label[for='product']": "product",
         "main section:nth-of-type(2) h2": "shippingLead", "label[for='shippingMode']": "shippingMode",
         "label[for='shippingPort']": "shippingPort",
+        "#palletizedShipmentLabel": "palletizedShipment", "label[for='shipmentPalletType']": "shipmentPalletType",
+        "#shipmentPalletType option[value='EUR']": "eurPallet", "#shipmentPalletType option[value='US']": "usPallet",
         "#shippingMode option[value='sea']": "sea", "#shippingMode option[value='air']": "air", "#shippingMode option[value='courier']": "courier",
         "label[for='sampleLeadTime']": "sampleLead", "label[for='productionLeadTime']": "productionLead",
         "label[for='transitMode']": "transitMode", "#transitMode option[value='auto']": "autoTransport",
@@ -1116,8 +1142,9 @@
         "label[for='styleCount']": "styleCount",
         "label[for='financingRate']": "financing", "label[for='rappelRate']": "rappel", "label[for='targetMargin']": "targetMargin",
         ".quote-number .label": "quoteLabel", ".kpi:nth-child(1) span": "finalCost", ".kpi:nth-child(2) span": "margin",
-        ".kpi:nth-child(3) span": "cartonsTotal", ".kpi:nth-child(4) span": "pallet", ".kpi:nth-child(5) span": "totalCbm",
-        ".kpi:nth-child(8) span": "eta",
+        "#totalPriceLabel": "totalPrice", "#vatTotalLabel": "vatTotal",
+        ".kpi:nth-child(5) span": "cartonsTotal", ".kpi:nth-child(6) span": "pallet", ".kpi:nth-child(7) span": "totalCbm",
+        ".kpi:nth-child(10) span": "eta",
         "label[for='palletMaxHeight']": "maxHeight", "label[for='palletBaseHeight']": "palletHeight",
         ".mini-table th:nth-child(1)": "pallet", ".mini-table th:nth-child(2)": "perLayer", ".mini-table th:nth-child(3)": "layers",
         ".mini-table th:nth-child(4)": "boxesPerPallet", ".mini-table th:nth-child(5)": "mixedPallets", ".mini-table th:nth-child(6)": "palletsByStyle", ".mini-table th:nth-child(7)": "actualPallets",
@@ -1314,8 +1341,9 @@
       const actualPallets = boxesPerPallet > 0
         ? palletsByStyle.reduce((sum, value) => sum + value, 0)
         : 0;
+      const actualBoxesPerPallet = actualPallets > 0 ? cartons / actualPallets : 0;
 
-      return { palletName, perLayer, layers, boxesPerPallet, mixedPallets, palletsByStyle, actualPallets };
+      return { palletName, perLayer, layers, boxesPerPallet, actualBoxesPerPallet, mixedPallets, palletsByStyle, actualPallets };
     }
 
     function renderPalletPlanner(plans) {
@@ -1328,7 +1356,7 @@
           <td>${plan.palletName}</td>
           <td>${plain(plan.perLayer, 0)}</td>
           <td>${plain(plan.layers, 0)}</td>
-          <td>${plain(plan.boxesPerPallet, 0)}</td>
+          <td>${plain(plan.actualBoxesPerPallet, 2)}</td>
           <td>${plain(plan.mixedPallets, 0)}</td>
           <td>${plan.palletsByStyle.length > 1 ? plan.palletsByStyle.join(" / ") : "-"}</td>
           <td>${plain(plan.actualPallets, 0)}</td>
@@ -1351,6 +1379,8 @@
         ["CLIENTE", el.client.value],
         ["运输方式", getShippingModeLabel()],
         ["出货港", getSelectedText(el.shippingPort)],
+        ["打托出货", el.palletizedShipment.checked ? "是" : "否"],
+        ["出货托盘类型", el.palletizedShipment.checked ? getSelectedText(el.shipmentPalletType) : "不适用"],
         ["开始日期", formatDate(el.startDate.value)],
         ["预计交货日期", formatDate(el.deliveryDate.value)],
         ["样品周期", num("sampleLeadTime")],
@@ -1380,14 +1410,15 @@
         ["到仓费", `${r.llegadaTotal} (${r.llegada.label})`, r.llegadaUnit],
         ["托盘费", r.palletUnit * r.quantity, r.palletUnit],
         ["西班牙派送", `${r.entrega.total} (${r.entrega.label})`, r.entregaUnit],
-        ["融资费", `${plain(num("financingRate"), 2)}%`, r.financingUnit],
+        ["手续费", `${plain(num("financingRate"), 2)}%`, r.financingUnit],
         ["返利", `${plain(num("rappelRate"), 2)}%`, r.rappelUnit],
         ["最终成本", r.finalCost * r.quantity, r.finalCost],
         ["", ""],
         ["目标毛利", `${plain(r.marginPercent, 2)}%`],
         ["建议报价", r.roundedQuote],
+        ["价格总额", r.totalPrice],
+        ["税后价格总额 21% VAT", r.vatTotal],
         ["实际毛利", `${plain(r.actualMargin, 2)}%`],
-        ["销售额", r.roundedQuote * r.quantity],
         ["利润", (r.roundedQuote - r.finalCost) * r.quantity]
       ];
 
@@ -1509,15 +1540,22 @@
       const unitsPerCarton = Math.max(num("unitsPerCarton"), 1);
       const cartonsRaw = quantity > 0 ? quantity / unitsPerCarton : 0;
       const cartons = el.roundCartons.checked ? Math.ceil(cartonsRaw) : cartonsRaw;
-      const cbm = (num("cartonLength") * num("cartonWidth") * num("cartonHeight") / 1000000) * cartons;
+      const cartonCbm = (num("cartonLength") * num("cartonWidth") * num("cartonHeight") / 1000000) * cartons;
       const totalKgs = cartons * num("cartonWeight");
-      const airFreight = getAirFreightTotal(cbm, totalKgs);
-      const freightTotal = ["air", "courier"].includes(el.shippingMode.value) ? airFreight.total : num("freightTotal");
       const palletPlans = [
         calculatePalletPlan("EUR 120x80", 120, 80, cartons),
         calculatePalletPlan("US 120x100", 120, 100, cartons)
       ];
+      if (el.palletizedShipment.checked) {
+        el.palletType.value = el.shipmentPalletType.value;
+      }
       const selectedPlan = el.palletType.value === "US" ? palletPlans[1] : palletPlans[0];
+      const selectedPalletLength = el.palletType.value === "US" ? 120 : 120;
+      const selectedPalletWidth = el.palletType.value === "US" ? 100 : 80;
+      const palletizedCbm = selectedPlan.actualPallets * selectedPalletLength * selectedPalletWidth * Math.max(num("palletMaxHeight"), 0) / 1000000;
+      const cbm = el.palletizedShipment.checked ? palletizedCbm : cartonCbm;
+      const airFreight = getAirFreightTotal(cbm, totalKgs);
+      const freightTotal = ["air", "courier"].includes(el.shippingMode.value) ? airFreight.total : num("freightTotal");
       const palletsRaw = selectedPlan.actualPallets;
       const pallets = selectedPlan.actualPallets;
       const entrega = getEntrega(pallets);
@@ -1541,12 +1579,14 @@
       const quote = finalCost / (1 - margin);
       const roundedQuote = Math.ceil(quote * 100) / 100;
       const actualMargin = roundedQuote > 0 ? (roundedQuote - finalCost) / roundedQuote * 100 : 0;
+      const totalPrice = roundedQuote * quantity;
+      const vatTotal = totalPrice * 1.21;
 
       return {
-        quantity, cartons, cartonsRaw, cbm, totalKgs, airFreight, freightTotal, pallets, palletsRaw, palletPlans, selectedPlan, entrega, llegada, llegadaTotal,
+        quantity, cartons, cartonsRaw, cbm, cartonCbm, palletizedCbm, totalKgs, airFreight, freightTotal, pallets, palletsRaw, palletPlans, selectedPlan, entrega, llegada, llegadaTotal,
         unitEur, freightUnit, sampleUnit, inspectionUnit, dutyUnit, llegadaUnit,
         palletUnit, entregaUnit, financingUnit, rappelUnit, finalCost, quote, roundedQuote,
-        actualMargin, marginPercent: num("targetMargin")
+        actualMargin, marginPercent: num("targetMargin"), totalPrice, vatTotal
       };
     }
 
@@ -1561,11 +1601,13 @@
       el.deliveryDate.value = addDays(el.startDate.value, totalLeadTime);
       el.exchangeRate.disabled = el.unitCostCurrency.value === "EUR";
       el.styleCount.disabled = el.styleMode.value !== "yes";
+      document.getElementById("shipmentPalletTypeWrap").style.display = el.palletizedShipment.checked ? "" : "none";
       el.unitCostEurDisplay.value = getUnitCostEur().toFixed(4);
       renderStyleQuantityFields(num("quantity"));
       enforceStyleQuantityLimit();
 
       const r = calculate();
+      document.querySelector("label[for='cbmDisplay']").textContent = el.palletizedShipment.checked ? tr("palletizedCbm") : tr("cbmDisplay");
       const isFormulaFreight = ["air", "courier"].includes(el.shippingMode.value);
       el.airFreightRmbKg.disabled = !isFormulaFreight;
       el.chargeableTypeDisplay.disabled = !isFormulaFreight;
@@ -1574,7 +1616,7 @@
         el.chargeableWeightDisplay.value = plain(r.airFreight.chargeableWeight, 2).replace(/,/g, "");
         el.chargeableTypeDisplay.value = tr(r.airFreight.chargeableType);
       } else {
-        document.querySelector("label[for='chargeableWeightDisplay']").textContent = tr("seaVolume");
+        document.querySelector("label[for='chargeableWeightDisplay']").textContent = el.palletizedShipment.checked ? tr("palletizedCbm") : tr("seaVolume");
         el.chargeableWeightDisplay.value = plain(r.cbm, 3).replace(/,/g, "");
         el.chargeableTypeDisplay.value = "-";
       }
@@ -1597,8 +1639,11 @@
       document.getElementById("quoteSubtitle").textContent = tr("targetMargin") + " " + plain(r.marginPercent, 1) + "% / " + tr("actual") + " " + plain(r.actualMargin, 2) + "%";
       document.getElementById("finalCost").textContent = money(r.finalCost, 3);
       document.getElementById("actualMargin").textContent = pct(r.actualMargin);
+      document.getElementById("totalPrice").textContent = money(r.totalPrice, 2);
+      document.getElementById("vatTotal").textContent = money(r.vatTotal, 2);
       document.getElementById("cartons").textContent = plain(r.cartons, 2);
       document.getElementById("pallets").textContent = plain(r.pallets, 2);
+      document.querySelector(".kpi:nth-child(7) span").textContent = el.palletizedShipment.checked ? tr("palletizedCbm") : tr("totalCbm");
       document.getElementById("cbm").textContent = plain(r.cbm, 3);
       document.getElementById("pesoVol").textContent = plain(r.airFreight.volumeWeight, 2);
       document.getElementById("pesoBruto").textContent = plain(r.totalKgs, 2);
@@ -1649,6 +1694,8 @@
         `${tr("product")}：${el.product.value}`,
         `${tr("shippingMode")}：${getShippingModeLabel()}`,
         `${tr("shippingPort")}：${getSelectedText(el.shippingPort)}`,
+        `${tr("palletizedShipment")}：${el.palletizedShipment.checked ? tr("yes") : tr("no")}`,
+        `${tr("shipmentPalletType")}：${el.palletizedShipment.checked ? getSelectedText(el.shipmentPalletType) : tr("notApplicable")}`,
         `${tr("quantity")}：${plain(r.quantity, 0)} pcs`,
         `${tr("totalLead")}：${plain(totalLeadTime, 0)}`,
         `${tr("startDate")}：${formatDate(el.startDate.value)}`,
@@ -1667,6 +1714,8 @@
         `${tr("finalCost")}：${money(r.finalCost, 3)} / pc`,
         `${tr("targetMargin")}：${plain(r.marginPercent, 1)}%`,
         `${tr("quote")}：${money(r.roundedQuote, 2)} / pc`,
+        `${tr("totalPrice")}：${money(r.totalPrice, 2)}`,
+        `${tr("vatTotal")}：${money(r.vatTotal, 2)}`,
         `${tr("actualMargin")}：${plain(r.actualMargin, 2)}%`
       ].join("\\n");
       document.getElementById("copyText").value = copy;
@@ -1719,6 +1768,11 @@
     });
     el.airFreightRmbKg.addEventListener("input", render);
     el.shippingMode.addEventListener("change", render);
+    el.palletizedShipment.addEventListener("change", render);
+    el.shipmentPalletType.addEventListener("change", () => {
+      el.palletType.value = el.shipmentPalletType.value;
+      render();
+    });
 
     document.getElementById("resetBtn").addEventListener("click", reset);
     document.getElementById("exportBtn").addEventListener("click", exportExcel);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "quotii-cache-v3";
+﻿const CACHE_NAME = "quotii-cache-v6";
 const ASSETS = [
   "./",
   "./index.html",
@@ -34,3 +34,5 @@ self.addEventListener("fetch", (event) => {
     )
   );
 });
+
+
