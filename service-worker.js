@@ -1,7 +1,7 @@
-const CACHE_NAME = "quotii-cache-v1";
+const CACHE_NAME = "quotii-cache-v3";
 const ASSETS = [
   "./",
-  "./quote-calculator.html",
+  "./index.html",
   "./manifest.json",
   "./icons/quotii.png"
 ];

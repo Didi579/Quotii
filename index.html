@@ -191,7 +191,7 @@
     }
 
     .inline-fields .field {
-      min-width: 120px;
+      min-width: 0;
     }
 
     .stack-fields {
@@ -243,6 +243,52 @@
     input[type="number"] {
       text-align: right;
       font-variant-numeric: tabular-nums;
+    }
+
+    input[readonly],
+    input:disabled,
+    select:disabled {
+      opacity: 1;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        font-size: 14px;
+      }
+
+      .app {
+        display: block;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .inline-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 6px;
+      }
+
+      input,
+      select {
+        min-height: 36px;
+        padding: 6px;
+      }
+
+      input[type="number"] {
+        text-align: left;
+      }
+
+      .field {
+        gap: 3px;
+      }
     }
 
     input[type="date"] {
@@ -912,6 +958,7 @@
         totalLead: "总交期 天", startDate: "开始日期", deliveryDate: "交货日期",
         cost: "成本", quantity: "数量", costCurrency: "单价成本币种", unitCost: "单价成本",
         eurCost: "EUR 换算价格", exchange: "汇率 USD 到 EUR", airFreightRmbKg: "运费 RMB/kg", chargeableWeight: "计费重量 kg", chargeableType: "计费方式", heavyCargo: "重货", volumeCargo: "抛货", freight: "运费总额 EUR", duty: "关税税率 %",
+        seaVolume: "货物总体积 CBM",
         packing: "包装", unitsCarton: "每箱数量", cartonWeight: "每箱毛重 kg", roundCartons: "总箱数向上取整",
         cartonL: "外箱长 cm", cartonW: "外箱宽 cm", cartonH: "外箱高 cm", cartonsTotal: "总箱数", cbmDisplay: "总体积 CBM",
         rules: "费用规则", sampleFee: "样品费 EUR", inspectionFee: "验货费 EUR", llegada: "到仓费",
@@ -936,6 +983,7 @@
         totalLead: "Total Lead Time Days", startDate: "Start Date", deliveryDate: "Delivery Date",
         cost: "Cost", quantity: "Quantity", costCurrency: "Unit Cost Currency", unitCost: "Unit Cost",
         eurCost: "EUR Converted Cost", exchange: "USD to EUR Rate", airFreightRmbKg: "Freight RMB/kg", chargeableWeight: "Chargeable kg", chargeableType: "Chargeable Type", heavyCargo: "Gross Weight", volumeCargo: "Volume Weight", freight: "Freight Total EUR", duty: "Duty Rate %",
+        seaVolume: "Total CBM",
         packing: "Packing", unitsCarton: "Units per Carton", cartonWeight: "Gross Weight kg/ctn", roundCartons: "Round Cartons Up",
         cartonL: "Carton Length cm", cartonW: "Carton Width cm", cartonH: "Carton Height cm", cartonsTotal: "Total Cartons", cbmDisplay: "Total CBM",
         rules: "Cost Rules", sampleFee: "Sample EUR", inspectionFee: "Inspection EUR", llegada: "Arrival Cost",
@@ -960,6 +1008,7 @@
         totalLead: "Plazo Total Días", startDate: "Fecha Inicio", deliveryDate: "Fecha Entrega",
         cost: "Coste", quantity: "Cantidad", costCurrency: "Moneda Coste Unitario", unitCost: "Coste Unitario",
         eurCost: "Coste Convertido EUR", exchange: "Cambio USD a EUR", airFreightRmbKg: "Flete RMB/kg", chargeableWeight: "Peso Facturable kg", chargeableType: "Tipo Facturable", heavyCargo: "Peso Bruto", volumeCargo: "Peso Volumétrico", freight: "Flete Total EUR", duty: "Arancel %",
+        seaVolume: "CBM Total",
         packing: "Embalaje", unitsCarton: "Unidades por Caja", cartonWeight: "Peso Bruto kg/caja", roundCartons: "Redondear Cajas",
         cartonL: "Largo Caja cm", cartonW: "Ancho Caja cm", cartonH: "Alto Caja cm", cartonsTotal: "Total Cajas", cbmDisplay: "CBM Total",
         rules: "Reglas de Coste", sampleFee: "Muestra EUR", inspectionFee: "Inspección EUR", llegada: "Llegada",
@@ -1517,10 +1566,20 @@
       enforceStyleQuantityLimit();
 
       const r = calculate();
-      el.chargeableWeightDisplay.value = plain(r.airFreight.chargeableWeight, 2).replace(/,/g, "");
-      el.chargeableTypeDisplay.value = tr(r.airFreight.chargeableType);
-      el.freightTotal.disabled = ["air", "courier"].includes(el.shippingMode.value);
-      if (["air", "courier"].includes(el.shippingMode.value)) {
+      const isFormulaFreight = ["air", "courier"].includes(el.shippingMode.value);
+      el.airFreightRmbKg.disabled = !isFormulaFreight;
+      el.chargeableTypeDisplay.disabled = !isFormulaFreight;
+      if (isFormulaFreight) {
+        document.querySelector("label[for='chargeableWeightDisplay']").textContent = tr("chargeableWeight");
+        el.chargeableWeightDisplay.value = plain(r.airFreight.chargeableWeight, 2).replace(/,/g, "");
+        el.chargeableTypeDisplay.value = tr(r.airFreight.chargeableType);
+      } else {
+        document.querySelector("label[for='chargeableWeightDisplay']").textContent = tr("seaVolume");
+        el.chargeableWeightDisplay.value = plain(r.cbm, 3).replace(/,/g, "");
+        el.chargeableTypeDisplay.value = "-";
+      }
+      el.freightTotal.disabled = isFormulaFreight;
+      if (isFormulaFreight) {
         el.freightTotal.value = r.freightTotal.toFixed(2);
       }
 
